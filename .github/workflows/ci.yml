@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck + Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Placeholder values so `next build` doesn't fail on missing env at module load.
+    # Real values live in the Vercel project (production) — CI only validates the build.
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
+      SUPABASE_SERVICE_ROLE_KEY: sb_secret_ci_placeholder
+      HERMESHQ_URL: https://hq.gcaplabs.com
+      NEXT_PUBLIC_SITE_URL: https://console.gcaplabs.com
+      AGENT37_API_KEY: ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
