@@ -12,7 +12,11 @@ export interface SendSettings extends Partial<ChatSettings> {
 }
 
 interface UseChatArgs {
-  agentId: string;
+  /**
+   * Optional agent ID. When provided, requests route to /api/agents/{id}/chat/* (fleet mode).
+   * When omitted, requests route to /api/chat/* (single-runtime mode — Headmaster default).
+   */
+  agentId?: string;
   sessionId: string | null;
   // Called once when a brand-new conversation mints its session id mid-stream. The provider
   // persists it (records the rail row) and promotes it to the active thread.
@@ -101,7 +105,10 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
   // does NOT stop server-side generation (only the cancel endpoint does).
   const cancelUpstream = useCallback(
     (rid: string | null) => {
-      if (rid) apiFetch(`/api/agents/${agentId}/chat/responses/${rid}/cancel`, { method: "POST" }).catch(() => {});
+      if (rid) {
+        const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+        apiFetch(`${base}/responses/${rid}/cancel`, { method: "POST" }).catch(() => {});
+      }
     },
     [agentId]
   );
@@ -132,7 +139,8 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
 
     let cancelled = false;
     setLoadingHistory(true);
-    apiFetch<SessionDetail>(`/api/agents/${agentId}/chat/sessions/${sessionId}`)
+    const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+    apiFetch<SessionDetail>(`${base}/sessions/${sessionId}`)
       .then((res) => {
         if (cancelled) return;
         setMessages(
@@ -201,9 +209,10 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
         }));
 
       let streamError: string | null = null;
+      const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
 
       try {
-        const res = await fetch(`/api/agents/${agentId}/chat/responses`, {
+        const res = await fetch(`${base}/responses`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

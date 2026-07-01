@@ -1,7 +1,18 @@
-// Branding lives in code, not env — fork this file and change the two values.
-// `logoUrl` can be a path to a file you drop in /public (e.g. "/logo.svg") or an
-// absolute URL; "" hides it.
+// GCAP Headmaster console branding.
+// `logoUrl` can be a path to a file in /public (e.g. "/logo.svg") or an
+// absolute URL; "" hides it. Replace with a real logo once the asset exists.
 export const branding = {
-  appName: "Agent37 Starter Kit",
+  appName: "Headmaster",
+  appShortName: "Headmaster",
   logoUrl: "",
+  // Site-wide theme tokens — keep in sync with docs/theming/gcap-brand-tokens.ts
+  theme: {
+    primary: "#1a4d2e",
+    primaryHover: "#143d25",
+    gold: "#c9a96e",
+    paper: "#f4f1ea",
+    surface: "#faf7f2",
+    ink: "#1a1814",
+    muted: "#5e564a",
+  },
 } as const;

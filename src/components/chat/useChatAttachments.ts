@@ -15,8 +15,9 @@ export interface PendingFile {
 }
 
 // Drag-drop / paste / click attachments. Each file uploads immediately to the instance
-// (POST /api/agents/{id}/chat/files) and the returned path is collected at send time.
-export function useChatAttachments(agentId: string, onFocusRequest?: () => void) {
+// (POST /api/chat/files or POST /api/agents/{id}/chat/files) and the returned path is
+// collected at send time. When `agentId` is omitted, uses the single-runtime mode.
+export function useChatAttachments(agentId?: string, onFocusRequest?: () => void) {
   const [files, setFiles] = useState<PendingFile[]>([]);
   const controllers = useRef<Map<string, AbortController>>(new Map());
   const filesRef = useRef<PendingFile[]>([]);
@@ -35,7 +36,8 @@ export function useChatAttachments(agentId: string, onFocusRequest?: () => void)
       form.append("file", pf.file, pf.file.name);
       let aborted = false;
       try {
-        const res = await fetch(`/api/agents/${agentId}/chat/files`, {
+      const uploadUrl = agentId ? `/api/agents/${agentId}/chat/files` : `/api/chat/files`;
+        const res = await fetch(uploadUrl, {
           method: "POST",
           body: form,
           signal: ctrl.signal,
