@@ -50,6 +50,14 @@ export interface ProvisionResponse {
   default_provider: string | null;
 }
 
+export interface ReloadMcpResult {
+  added: string[];
+  removed: string[];
+  reconnected: string[];
+  tool_count: number;
+  server_count: number;
+}
+
 export class HermesHQError extends Error {
   status: number;
   code: string;
@@ -233,6 +241,8 @@ export const hermeshq = {
         transport: { type: "http", url, ...(headers ? { headers } : {}) },
       }),
     }),
+  reloadMcp: () =>
+    instanceCall<ReloadMcpResult>("/api/mcp/reload", { method: "POST" }),
   removeMcpServer: (name: string) =>
     instanceCall<void>(`/api/mcp/servers/${encodeURIComponent(name)}`, { method: "DELETE" }),
   googleAuthStatus: () =>

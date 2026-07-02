@@ -20,8 +20,17 @@ export async function POST(request: Request) {
     // 3. Register the MCP URL on the user's runtime gateway → config.yaml.
     //    Pass the Composio API key as an x-api-key header — Composio's MCP
     //    requires it for auth (default for new orgs).
+    let registered = false;
+    let reloadSummary: Awaited<ReturnType<typeof hermeshq.reloadMcp>> | null = null;
+
     try {
       await hermeshq.registerMcpServer('composio', mcpUrl, { 'x-api-key': composioKey });
+      registered = true;
+      try {
+        reloadSummary = await hermeshq.reloadMcp();
+      } catch (reloadError) {
+        console.warn('[register-mcp] Failed to reload MCP tools:', reloadError instanceof Error ? reloadError.message : reloadError);
+      }
     } catch (e) {
       // If the gateway is unreachable (container not provisioned), don't fail the
       // whole connect flow — the connection is still valid on Composio's side.
@@ -29,7 +38,7 @@ export async function POST(request: Request) {
       console.warn('[register-mcp] Failed to register on gateway:', e instanceof Error ? e.message : e);
     }
 
-    return json({ ok: true, mcpUrl });
+    return json({ ok: true, mcpUrl, registered, reload: reloadSummary });
   } catch (e) {
     return handleError(e);
   }

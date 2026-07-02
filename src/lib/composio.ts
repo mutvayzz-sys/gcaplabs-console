@@ -207,6 +207,7 @@ interface ComposioMcpInstance {
 }
 
 async function findSharedMcpServer(): Promise<ComposioMcpServer | null> {
+  // TODO(scale): paginate this list before there are >100 shared servers.
   const result = await mcpFetch<{ items: ComposioMcpServer[] }>(`/mcp/servers?limit=100`);
   return result.items?.find((s) => s.name === SHARED_MCP_SERVER_NAME) ?? null;
 }
@@ -232,6 +233,7 @@ async function patchSharedMcpServer(serverId: string, authConfigIds: string[]): 
 
 async function findExistingInstance(serverId: string, userId: string): Promise<ComposioMcpInstance | null> {
   try {
+    // TODO(scale): paginate this list before there are >100 users/instances on one MCP server.
     const result = await mcpFetch<{ items: Array<{ id: string; server_id: string; user_id: string }> }>(
       `/mcp/servers/${serverId}/instances?limit=100`
     );
@@ -317,9 +319,5 @@ export async function removeToolkitFromSharedMcp(params: {
   const server = await findSharedMcpServer();
   if (!server) return;
   const remaining = server.auth_config_ids.filter((id) => id !== params.authConfigId);
-  if (remaining.length === 0) {
-    await mcpFetch(`/mcp/servers/${server.id}`, { method: 'DELETE' });
-  } else {
-    await patchSharedMcpServer(server.id, remaining);
-  }
+  await patchSharedMcpServer(server.id, remaining);
 }
