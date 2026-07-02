@@ -14,7 +14,7 @@ export const SHAPE_PRESETS: Shape[] = [
 ];
 
 export const DEFAULT_AGENT = {
-  template: "agent37-hermes",
+  template: "headmaster-hermes",
   cpu: 2,
   memory: 4,
   disk: 6,
@@ -36,14 +36,14 @@ export interface AgentTypeOption {
 export const AGENT_TYPES: AgentTypeOption[] = [
   {
     id: "hermes",
-    template: "agent37-hermes",
+    template: "headmaster-hermes",
     label: "Hermes",
     description: "General agent: chat, browsing, code, files.",
     recommended: true,
   },
   {
     id: "openclaw",
-    template: "agent37-openclaw",
+    template: "headmaster-openclaw",
     label: "OpenClaw",
     description: "General agent: headless browser, code, files.",
   },
