@@ -159,10 +159,44 @@ export async function initiateConnection(params: {
 
 const SHARED_MCP_SERVER_NAME = 'headmaster-shared';
 
+// Composio's MCP server endpoints are on v3.1, not v3 (the v3 MCP API is deprecated).
+const MCP_BASE_URL = 'https://backend.composio.dev/api/v3.1';
+
+async function mcpFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const key = apiKey();
+  const res = await fetch(`${MCP_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      'x-api-key': key,
+      'Content-Type': 'application/json',
+      ...(init?.headers || {}),
+    },
+    cache: 'no-store',
+  });
+  const text = await res.text();
+  let data: unknown = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new ComposioError(res.status, `Composio MCP returned non-JSON (${res.status}): ${text.slice(0, 300)}`);
+    }
+  }
+  if (!res.ok) {
+    const message =
+      (data as { error?: { message?: string }; message?: string })?.error?.message ??
+      (data as { message?: string })?.message ??
+      res.statusText;
+    throw new ComposioError(res.status, message);
+  }
+  return data as T;
+}
+
 interface ComposioMcpServer {
   id: string;
   name: string;
   auth_config_ids: string[];
+  mcp_url?: string;
 }
 
 interface ComposioMcpInstance {
@@ -173,12 +207,12 @@ interface ComposioMcpInstance {
 }
 
 async function findSharedMcpServer(): Promise<ComposioMcpServer | null> {
-  const result = await composioFetch<{ items: ComposioMcpServer[] }>(`/mcp/servers?limit=100`);
+  const result = await mcpFetch<{ items: ComposioMcpServer[] }>(`/mcp/servers?limit=100`);
   return result.items?.find((s) => s.name === SHARED_MCP_SERVER_NAME) ?? null;
 }
 
 async function createSharedMcpServer(authConfigId: string): Promise<ComposioMcpServer> {
-  const created = await composioFetch<{ id: string; name: string; auth_config_ids: string[] }>('/mcp/servers', {
+  const created = await mcpFetch<{ id: string; name: string; auth_config_ids: string[] }>('/mcp/servers', {
     method: 'POST',
     body: JSON.stringify({
       name: SHARED_MCP_SERVER_NAME,
@@ -189,20 +223,29 @@ async function createSharedMcpServer(authConfigId: string): Promise<ComposioMcpS
 }
 
 async function patchSharedMcpServer(serverId: string, authConfigIds: string[]): Promise<ComposioMcpServer> {
-  const patched = await composioFetch<{ id: string; name: string; auth_config_ids: string[] }>(`/mcp/servers/${serverId}`, {
+  const patched = await mcpFetch<{ id: string; name: string; auth_config_ids: string[] }>(`/mcp/servers/${serverId}`, {
     method: 'PATCH',
     body: JSON.stringify({ auth_config_ids: authConfigIds }),
   });
   return patched;
 }
 
+async function findExistingInstance(serverId: string, userId: string): Promise<ComposioMcpInstance | null> {
+  try {
+    const result = await mcpFetch<{ items: Array<{ id: string; server_id: string; user_id: string }> }>(
+      `/mcp/servers/${serverId}/instances?limit=100`
+    );
+    return result.items?.find((i) => i.user_id === userId) as ComposioMcpInstance | null ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function createMcpInstance(serverId: string, userId: string): Promise<ComposioMcpInstance> {
-  const created = await composioFetch<{ id: string; server_id: string; user_id: string; connect_url?: string }>(`/mcp/servers/${serverId}/instances`, {
+  const created = await mcpFetch<{ id: string; server_id: string; user_id: string; connect_url?: string }>(`/mcp/servers/${serverId}/instances`, {
     method: 'POST',
     body: JSON.stringify({ user_id: userId }),
   });
-  // Composio returns the connect URL in a specific format. If connect_url isn't
-  // directly in the response, construct it from the known pattern.
   const connectUrl = created.connect_url ?? `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
   return { ...created, connect_url: connectUrl };
 }
@@ -230,8 +273,12 @@ export async function ensureComposioMcpForUser(params: {
     }
   }
 
-  // 2. Create (or re-create) a per-user instance.
-  const instance = await createMcpInstance(server.id, params.userId);
+  // 2. Find an existing per-user instance, or create a new one. Composio only
+  //    allows one instance per user per server — re-creating throws.
+  let instance = await findExistingInstance(server.id, params.userId);
+  if (!instance) {
+    instance = await createMcpInstance(server.id, params.userId);
+  }
 
   // 3. Return the API key too — Composio's MCP requires an x-api-key header
   // when require_mcp_api_key is enabled (default for new orgs). The gateway
@@ -250,7 +297,7 @@ export async function removeToolkitFromSharedMcp(params: {
   if (!server) return;
   const remaining = server.auth_config_ids.filter((id) => id !== params.authConfigId);
   if (remaining.length === 0) {
-    await composioFetch(`/mcp/servers/${server.id}`, { method: 'DELETE' });
+    await mcpFetch(`/mcp/servers/${server.id}`, { method: 'DELETE' });
   } else {
     await patchSharedMcpServer(server.id, remaining);
   }
