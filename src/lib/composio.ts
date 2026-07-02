@@ -27,7 +27,9 @@ export class ComposioError extends ApiError {
 }
 
 function apiKey(): string {
-  const key = process.env.COMPOSIO_API_KEY;
+  // .trim() guards against a trailing newline/space from pasting into a dashboard env-var field —
+  // a real cause of "invalid API key" even when the key itself is correct.
+  const key = process.env.COMPOSIO_API_KEY?.trim();
   if (!key) throw new ComposioError(500, "COMPOSIO_API_KEY is not configured on the server.");
   return key;
 }
