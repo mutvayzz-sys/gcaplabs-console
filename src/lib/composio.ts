@@ -274,10 +274,21 @@ export async function ensureComposioMcpForUser(params: {
   }
 
   // 2. Find an existing per-user instance, or create a new one. Composio only
-  //    allows one instance per user per server — re-creating throws.
+  //    allows one instance per user per server — re-creating throws "Cannot
+  //    create duplicate MCP server instance". The lookup below is best-effort
+  //    (it silently returns null on any failure, e.g. pagination/rate-limit),
+  //    so treat that specific error from create as confirmation an instance
+  //    already exists and recover it, rather than surfacing the error.
   let instance = await findExistingInstance(server.id, params.userId);
   if (!instance) {
-    instance = await createMcpInstance(server.id, params.userId);
+    try {
+      instance = await createMcpInstance(server.id, params.userId);
+    } catch (e) {
+      if (e instanceof ComposioError && /duplicate/i.test(e.message)) {
+        instance = await findExistingInstance(server.id, params.userId);
+      }
+      if (!instance) throw e;
+    }
   }
 
   // 3. Return the API key too — Composio's MCP requires an x-api-key header
