@@ -6,6 +6,10 @@ import { apiFetch, readApiError } from "@/lib/api";
 import { useDropZone } from "../useDropZone";
 import { joinPath, type FileEntry, type FileListResponse } from "./types";
 
+function filesBase(agentId: string): string {
+  return agentId === "headmaster-runtime" ? "/api/chat/files" : `/api/agents/${agentId}/files`;
+}
+
 // Run `worker` over `items` with at most `limit` in flight. Folder uploads fan out to one PUT per
 // file; an unbounded Promise.all would open hundreds of sockets (and buffer hundreds of bodies) at
 // once, so we cap concurrency.
@@ -53,7 +57,7 @@ export function useFileBrowser(agentId: string) {
       setError(null);
       try {
         const qs = target ? `?path=${encodeURIComponent(target)}` : "";
-        const res = await apiFetch<FileListResponse>(`/api/agents/${agentId}/files/list${qs}`);
+        const res = await apiFetch<FileListResponse>(`${filesBase(agentId)}/list${qs}`);
         if (seq !== loadSeq.current) return; // a newer load superseded us
         setPath(res.path);
         setParentPath(res.parentPath);
@@ -98,7 +102,7 @@ export function useFileBrowser(agentId: string) {
     async (file: File, relPath: string): Promise<void> => {
       const target = joinPath(path!, relPath);
       const res = await fetch(
-        `/api/agents/${agentId}/files/content?path=${encodeURIComponent(target)}&overwrite=true`,
+        `${filesBase(agentId)}/content?path=${encodeURIComponent(target)}&overwrite=true`,
         { method: "PUT", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
       );
       if (!res.ok) throw new Error(await readApiError(res, "Upload failed"));
@@ -162,7 +166,7 @@ export function useFileBrowser(agentId: string) {
       const clean = name.trim();
       if (!clean || !path) return;
       try {
-        await apiFetch(`/api/agents/${agentId}/files/dir?path=${encodeURIComponent(joinPath(path, clean))}`, {
+        await apiFetch(`${filesBase(agentId)}/dir?path=${encodeURIComponent(joinPath(path, clean))}`, {
           method: "POST",
         });
         toast.success("Folder created");
@@ -180,7 +184,7 @@ export function useFileBrowser(agentId: string) {
       const clean = newName.trim();
       if (!clean || !path || clean === entry.name) return;
       try {
-        await apiFetch(`/api/agents/${agentId}/files`, {
+        await apiFetch(filesBase(agentId), {
           method: "PATCH",
           body: JSON.stringify({ from: entry.path, to: joinPath(path, clean) }),
         });
@@ -195,7 +199,7 @@ export function useFileBrowser(agentId: string) {
   const remove = useCallback(
     async (entry: FileEntry) => {
       try {
-        await apiFetch(`/api/agents/${agentId}/files?path=${encodeURIComponent(entry.path)}`, { method: "DELETE" });
+        await apiFetch(`${filesBase(agentId)}?path=${encodeURIComponent(entry.path)}`, { method: "DELETE" });
         toast.success(`Deleted ${entry.name}`);
         await load(path ?? undefined);
       } catch (e) {

@@ -26,6 +26,14 @@ export default function LoginPage() {
   const [sent, setSent] = useState<null | "signup" | "reset">(null);
   const [sentEmail, setSentEmail] = useState("");
 
+  const devAuthBypass =
+    process.env.NODE_ENV !== "production" &&
+    (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+  useEffect(() => {
+    if (devAuthBypass) window.location.replace("/dashboard");
+  }, [devAuthBypass]);
+
   // /auth/callback bounces here with ?error=auth when a confirmation/recovery link
   // fails (expired, already used, or opened in a different browser). Surface it —
   // otherwise the user lands on a pristine form with no clue the link broke.
@@ -115,6 +123,16 @@ export default function LoginPage() {
   }
 
   const copy = COPY[mode];
+
+  if (devAuthBypass) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-6">
+        <div className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+          Opening the local dev console...
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">

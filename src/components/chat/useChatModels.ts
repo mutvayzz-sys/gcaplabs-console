@@ -22,7 +22,7 @@ export function useChatModels(agentId?: string): ChatModelsState {
 
   useEffect(() => {
     let cancelled = false;
-    const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+    const base = agentId && agentId !== "headmaster-runtime" ? `/api/agents/${agentId}/chat` : `/api/chat`;
     apiFetch<ModelsResponse>(`${base}/models`)
       .then((res) => {
         if (cancelled) return;

@@ -106,7 +106,7 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
   const cancelUpstream = useCallback(
     (rid: string | null) => {
       if (rid) {
-        const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+        const base = agentId && agentId !== "headmaster-runtime" ? `/api/agents/${agentId}/chat` : `/api/chat`;
         apiFetch(`${base}/responses/${rid}/cancel`, { method: "POST" }).catch(() => {});
       }
     },
@@ -139,7 +139,7 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
 
     let cancelled = false;
     setLoadingHistory(true);
-    const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+    const base = agentId && agentId !== "headmaster-runtime" ? `/api/agents/${agentId}/chat` : `/api/chat`;
     apiFetch<SessionDetail>(`${base}/sessions/${sessionId}`)
       .then((res) => {
         if (cancelled) return;
@@ -209,7 +209,7 @@ export function useChat({ agentId, sessionId, onSessionCreated, onActivity }: Us
         }));
 
       let streamError: string | null = null;
-      const base = agentId ? `/api/agents/${agentId}/chat` : `/api/chat`;
+      const base = agentId && agentId !== "headmaster-runtime" ? `/api/agents/${agentId}/chat` : `/api/chat`;
 
       try {
         const res = await fetch(`${base}/responses`, {

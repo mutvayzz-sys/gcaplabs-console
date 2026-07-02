@@ -7,14 +7,23 @@ import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+const ADMIN_NAV = [
   { href: "/dashboard", label: "Agents", icon: LayoutGrid, exact: true },
   { href: "/dashboard/members", label: "Members", icon: Users, exact: false },
   { href: "/dashboard/settings", label: "Settings", icon: Settings, exact: false },
 ];
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({
+  children,
+  userEmail,
+  isAdmin,
+}: {
+  children: React.ReactNode;
+  userEmail: string;
+  isAdmin: boolean;
+}) {
   const pathname = usePathname();
+  const nav = isAdmin ? ADMIN_NAV : [];
 
   return (
     <div className="flex min-h-screen">
@@ -28,7 +37,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="mt-6 flex flex-col gap-1">
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
@@ -49,7 +58,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {/* Account + workspace switcher, pinned to the bottom near the user's identity. */}
         <div className="mt-auto border-t pt-3">
-          <AccountMenu />
+          <AccountMenu userEmail={userEmail} />
         </div>
       </aside>
 

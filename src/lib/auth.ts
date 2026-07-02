@@ -1,6 +1,8 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ApiError } from "@/lib/http";
+import { MANAGED_WORKSPACE_ID } from "@/lib/managed-agent";
 import type { AgentRow, Role } from "@/lib/types";
 
 // `db` is the privileged service-role client (RLS bypassed). All table access in this app goes
@@ -11,6 +13,17 @@ import type { AgentRow, Role } from "@/lib/types";
 export type DB = ReturnType<typeof createAdminClient>;
 
 export async function getSession() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (process.env.NODE_ENV !== "production") {
+      return {
+        user: {
+          id: "dev-user",
+          email: "dev@headmaster.local",
+        },
+      };
+    }
+    return { user: null };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -62,4 +75,25 @@ export async function requireAgentAccess(agent37Id: string, access: "member" | "
   if (access === "admin") await requireAdmin(db, row.workspace_id, user.id);
   else await requireMember(db, row.workspace_id, user.id);
   return { db, user, row };
+}
+
+// Gates the console's own admin surfaces (Agents list, Members, Settings) — distinct from
+// per-agent capabilities. Source of truth is the `memberships` role for the single managed
+// workspace, same table `requireAgentAccess` checks. Mirrors getSession()'s dev-mode shortcut so
+// local dev without Supabase configured isn't locked out.
+export async function isConsoleAdmin(userId: string): Promise<boolean> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return true;
+  }
+  const db = createAdminClient();
+  const role = await getRole(db, MANAGED_WORKSPACE_ID, userId);
+  return role === "admin";
+}
+
+// Call at the top of a server component/page that should only render for console admins.
+// Redirects everyone else to `redirectTo` (typically the caller's agent workspace).
+export async function requireConsoleAdminOrRedirect(redirectTo: string): Promise<void> {
+  const { user } = await getSession();
+  if (!user) redirect("/login");
+  if (!(await isConsoleAdmin(user.id))) redirect(redirectTo);
 }

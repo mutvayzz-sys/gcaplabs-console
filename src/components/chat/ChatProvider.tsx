@@ -6,6 +6,15 @@ import { apiFetch } from "@/lib/api";
 import type { MergedAgent } from "@/lib/types";
 import { type ChatSession } from "./types";
 
+function chatBase(agentId: string): string {
+  return agentId === "headmaster-runtime" ? "/api/chat" : `/api/agents/${agentId}/chat`;
+}
+
+function normalizeSessions(res: { sessions?: ChatSession[]; data?: Array<{ id: string; title?: string | null; preview?: string | null }> }): ChatSession[] {
+  if (res.sessions) return res.sessions;
+  return (res.data ?? []).map((s) => ({ session_id: s.id, title: s.title || s.preview || null }));
+}
+
 interface ChatContextValue {
   agentId: string;
   // The workspace's agent list, threaded down so the composer's agent switcher can list them.
@@ -93,9 +102,9 @@ export function ChatProvider({
   useEffect(() => {
     let cancelled = false;
 
-    apiFetch<{ sessions: ChatSession[] }>(`/api/agents/${agentId}/chat/sessions`)
+    apiFetch<{ sessions?: ChatSession[]; data?: Array<{ id: string; title?: string | null; preview?: string | null }> }>(`${chatBase(agentId)}/sessions`)
       .then((res) => {
-        if (!cancelled) setSessions(res.sessions);
+        if (!cancelled) setSessions(normalizeSessions(res));
       })
       .catch(() => {})
       .finally(() => {
@@ -159,7 +168,7 @@ export function ChatProvider({
       // from any tab, so off-tab this stays silent rather than yanking the user's URL).
       if (wasActive) setOpenThread(null);
       try {
-        await apiFetch(`/api/agents/${agentId}/chat/sessions/${sessionId}`, { method: "DELETE" });
+        await apiFetch(`${chatBase(agentId)}/sessions/${sessionId}`, { method: "DELETE" });
       } catch (e) {
         // Functional rollback: re-insert only the removed row (preserving any threads added
         // concurrently) and restore the open thread.
@@ -178,7 +187,7 @@ export function ChatProvider({
       if (!next || next === prev) return;
       setSessions((s) => s.map((x) => (x.session_id === sessionId ? { ...x, title: next } : x))); // optimistic
       try {
-        await apiFetch(`/api/agents/${agentId}/chat/sessions/${sessionId}`, {
+        await apiFetch(`${chatBase(agentId)}/sessions/${sessionId}`, {
           method: "PATCH",
           body: JSON.stringify({ title: next }),
         });

@@ -36,7 +36,7 @@ export function useChatAttachments(agentId?: string, onFocusRequest?: () => void
       form.append("file", pf.file, pf.file.name);
       let aborted = false;
       try {
-      const uploadUrl = agentId ? `/api/agents/${agentId}/chat/files` : `/api/chat/files`;
+        const uploadUrl = agentId && agentId !== "headmaster-runtime" ? `/api/agents/${agentId}/chat/files` : `/api/chat/files`;
         const res = await fetch(uploadUrl, {
           method: "POST",
           body: form,

@@ -218,6 +218,12 @@ export const hermeshq = {
     instanceCall<{ name: string; path: string }>(`/v1/files/dir?path=${encodeURIComponent(path)}`, {
       method: "POST",
     }),
+  // /api/mcp/servers, /api/google/auth-status — the Agent37 gateway's Headmaster-desktop
+  // compatibility surface, reused here so the Integrations tab shows real connector state
+  // without needing a separate HermesHQ-side catalog endpoint.
+  listMcpServers: () => instanceCall<{ servers: Array<Record<string, unknown>> }>("/api/mcp/servers"),
+  googleAuthStatus: () =>
+    instanceCall<{ success: boolean; data?: { account: string }; msg?: string }>("/api/google/auth-status"),
 };
 
 // Re-export for routes that need to import Supabase server client
