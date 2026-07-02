@@ -222,6 +222,19 @@ export const hermeshq = {
   // compatibility surface, reused here so the Integrations tab shows real connector state
   // without needing a separate HermesHQ-side catalog endpoint.
   listMcpServers: () => instanceCall<{ servers: Array<Record<string, unknown>> }>("/api/mcp/servers"),
+  // Register an MCP server on the user's runtime gateway so the Hermes agent
+  // can call its tools. The gateway writes it to $HERMES_HOME/config.yaml.
+  registerMcpServer: (name: string, url: string, headers?: Record<string, string>) =>
+    instanceCall<{ id: string; name: string; enabled: boolean }>("/api/mcp/servers", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        enabled: true,
+        transport: { type: "http", url, ...(headers ? { headers } : {}) },
+      }),
+    }),
+  removeMcpServer: (name: string) =>
+    instanceCall<void>(`/api/mcp/servers/${encodeURIComponent(name)}`, { method: "DELETE" }),
   googleAuthStatus: () =>
     instanceCall<{ success: boolean; data?: { account: string }; msg?: string }>("/api/google/auth-status"),
 };
