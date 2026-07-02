@@ -8,6 +8,7 @@ import { ChatProvider } from "@/components/chat/ChatProvider";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatView } from "@/components/chat/ChatView";
 import { FilesTab } from "@/components/files/FilesTab";
+import { ComposioApps } from "@/components/integrations/ComposioApps";
 import { Badge } from "@/components/ui/badge";
 import { apiFetch } from "@/lib/api";
 import { agentTabPath, type AgentTab } from "@/lib/dashboard-tabs";
@@ -132,9 +133,15 @@ function RuntimeIntegrations() {
     <div className="mx-auto max-w-3xl p-8">
       <h1 className="text-xl font-semibold tracking-tight">Integrations</h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        Connectors available to this runtime. MCP servers are managed here; other connectors are
-        provisioned and governed by HermesHQ.
+        Connect third-party apps to this agent, plus runtime-level connectors (MCP servers, Google).
       </p>
+
+      <section className="mt-6">
+        <h2 className="text-sm font-medium">Third-party apps</h2>
+        <div className="mt-2">
+          <ComposioApps />
+        </div>
+      </section>
 
       {error ? (
         <div className="mt-6 rounded-lg border border-dashed p-6 text-sm text-destructive">{error}</div>
@@ -143,7 +150,7 @@ function RuntimeIntegrations() {
       ) : (
         <div className="mt-6 space-y-6">
           <section>
-            <h2 className="text-sm font-medium">Google</h2>
+            <h2 className="text-sm font-medium">Google (runtime)</h2>
             <div className="mt-2 flex items-center gap-2 rounded-lg border p-4 text-sm">
               {data.google.connected ? (
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
