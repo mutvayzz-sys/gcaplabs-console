@@ -242,12 +242,22 @@ async function findExistingInstance(serverId: string, userId: string): Promise<C
 }
 
 async function createMcpInstance(serverId: string, userId: string): Promise<ComposioMcpInstance> {
-  const created = await mcpFetch<{ id: string; server_id: string; user_id: string; connect_url?: string }>(`/mcp/servers/${serverId}/instances`, {
-    method: 'POST',
-    body: JSON.stringify({ user_id: userId }),
-  });
-  const connectUrl = created.connect_url ?? `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
-  return { ...created, connect_url: connectUrl };
+  try {
+    const created = await mcpFetch<{ id: string; server_id: string; user_id: string; connect_url?: string }>(`/mcp/servers/${serverId}/instances`, {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
+    });
+    const connectUrl = created.connect_url ?? `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
+    return { ...created, connect_url: connectUrl };
+  } catch (err) {
+    // If the instance already exists (duplicate), construct the URL ourselves —
+    // we know the server ID and user ID, so we can build the standard Composio MCP URL.
+    if (err instanceof ComposioError && err.status === 400 && /already exists|duplicate/i.test(err.message)) {
+      const connectUrl = `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
+      return { id: 'existing', server_id: serverId, user_id: userId, connect_url: connectUrl };
+    }
+    throw err;
+  }
 }
 
 /**
