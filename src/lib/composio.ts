@@ -114,7 +114,7 @@ export async function disconnectAccount(connectedAccountId: string): Promise<voi
 
 // Composio-managed auth configs are per-toolkit, not per-user — reuse an existing one if the
 // project already created it (e.g. a prior connect for any user) instead of minting duplicates.
-async function findOrCreateManagedAuthConfigId(toolkitSlug: string): Promise<string> {
+export async function findOrCreateManagedAuthConfigId(toolkitSlug: string): Promise<string> {
   const existing = await composioFetch<{ items: Array<{ id: string }> }>(
     `/auth_configs?toolkit_slug=${encodeURIComponent(toolkitSlug)}&is_composio_managed=true&limit=1`
   );
@@ -145,4 +145,110 @@ export async function initiateConnection(params: {
     }),
   });
   return { redirectUrl: link.redirect_url, connectedAccountId: link.connected_account_id };
+}
+
+// ── Composio MCP server management ──────────────────────────────────────────
+//
+// Composio has a first-class MCP server product separate from the toolkit
+// connection API. A "server" binds one or more auth_config_ids (i.e. connected
+// toolkits) and is instantiated per-user to produce a connectable MCP URL.
+//
+// We use a SINGLE shared MCP server per console project (name: "headmaster-shared"),
+// and PATCH new auth_config_ids onto it as users connect more toolkits. Each user
+// gets their own instance (user_id = Supabase user id) so tool access is scoped.
+
+const SHARED_MCP_SERVER_NAME = 'headmaster-shared';
+
+interface ComposioMcpServer {
+  id: string;
+  name: string;
+  auth_config_ids: string[];
+}
+
+interface ComposioMcpInstance {
+  id: string;
+  server_id: string;
+  user_id: string;
+  connect_url: string;
+}
+
+async function findSharedMcpServer(): Promise<ComposioMcpServer | null> {
+  const result = await composioFetch<{ items: ComposioMcpServer[] }>(`/mcp/servers?limit=100`);
+  return result.items?.find((s) => s.name === SHARED_MCP_SERVER_NAME) ?? null;
+}
+
+async function createSharedMcpServer(authConfigId: string): Promise<ComposioMcpServer> {
+  const created = await composioFetch<{ id: string; name: string; auth_config_ids: string[] }>('/mcp/servers', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: SHARED_MCP_SERVER_NAME,
+      auth_config_ids: [authConfigId],
+    }),
+  });
+  return created;
+}
+
+async function patchSharedMcpServer(serverId: string, authConfigIds: string[]): Promise<ComposioMcpServer> {
+  const patched = await composioFetch<{ id: string; name: string; auth_config_ids: string[] }>(`/mcp/servers/${serverId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ auth_config_ids: authConfigIds }),
+  });
+  return patched;
+}
+
+async function createMcpInstance(serverId: string, userId: string): Promise<ComposioMcpInstance> {
+  const created = await composioFetch<{ id: string; server_id: string; user_id: string; connect_url?: string }>(`/mcp/servers/${serverId}/instances`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  });
+  // Composio returns the connect URL in a specific format. If connect_url isn't
+  // directly in the response, construct it from the known pattern.
+  const connectUrl = created.connect_url ?? `https://backend.composio.dev/v3/mcp/${serverId}?user_id=${userId}`;
+  return { ...created, connect_url: connectUrl };
+}
+
+/**
+ * Ensure a Composio MCP server exists with the given auth_config_id, and create
+ * a per-user instance. Returns the connectable MCP URL.
+ *
+ * Called after a successful Composio OAuth connection completes — the console
+ * then POSTs this URL to the user's gateway /api/mcp/servers to register it
+ * with the running Hermes agent.
+ */
+export async function ensureComposioMcpForUser(params: {
+  authConfigId: string;
+  userId: string;
+}): Promise<{ mcpUrl: string; serverId: string }> {
+  // 1. Find or create the shared MCP server, with this auth_config_id included.
+  let server = await findSharedMcpServer();
+  if (!server) {
+    server = await createSharedMcpServer(params.authConfigId);
+  } else {
+    // Ensure the auth_config_id is in the server's list (PATCH to append).
+    if (!server.auth_config_ids.includes(params.authConfigId)) {
+      server = await patchSharedMcpServer(server.id, [...server.auth_config_ids, params.authConfigId]);
+    }
+  }
+
+  // 2. Create (or re-create) a per-user instance.
+  const instance = await createMcpInstance(server.id, params.userId);
+
+  return { mcpUrl: instance.connect_url, serverId: server.id };
+}
+
+/**
+ * Remove an auth_config_id from the shared MCP server when a user disconnects
+ * a toolkit. If no auth_config_ids remain, the server is deleted.
+ */
+export async function removeToolkitFromSharedMcp(params: {
+  authConfigId: string;
+}): Promise<void> {
+  const server = await findSharedMcpServer();
+  if (!server) return;
+  const remaining = server.auth_config_ids.filter((id) => id !== params.authConfigId);
+  if (remaining.length === 0) {
+    await composioFetch(`/mcp/servers/${server.id}`, { method: 'DELETE' });
+  } else {
+    await patchSharedMcpServer(server.id, remaining);
+  }
 }
