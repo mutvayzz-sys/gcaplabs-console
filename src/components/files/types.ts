@@ -1,5 +1,5 @@
 // Shared client-side helpers for the Files tab. The wire shapes (FileEntry / FileListResponse)
-// live in lib/types.ts so the server (lib/hermeshq.ts) and the browser agree on one definition.
+// live in lib/types.ts so the server (lib/agent37.ts) and the browser agree on one definition.
 import type { FileEntry } from '@/lib/types';
 
 export type { FileEntry, FileListResponse } from '@/lib/types';

@@ -20,7 +20,7 @@ export function AccountMenu({ userEmail }: { userEmail: string }) {
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-medium">{userEmail}</span>
-          <span className="block truncate text-xs text-muted-foreground">HermesHQ console</span>
+          <span className="block truncate text-xs text-muted-foreground">Headmaster Console</span>
         </span>
       </div>
       <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground" onClick={signOut}>

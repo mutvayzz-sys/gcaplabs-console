@@ -12,7 +12,7 @@ export function requireTrimmed(value: string | null | undefined, message: string
   return trimmed;
 }
 
-// Turn a HermesHQ instance's error body into a member-safe message. Errors come back nested
+// Turn an Agent37 instance error body into a member-safe message. Errors come back nested
 // ({"error":{...}}) or flat; a non-JSON body (e.g. a 502 HTML page) is logged server-side under
 // `context` and collapsed to `fallback` so we never echo internals. Consumes the Response body —
 // call only on the failure path (the success path keeps `upstream.body` intact).

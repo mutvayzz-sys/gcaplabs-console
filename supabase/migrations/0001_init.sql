@@ -1,11 +1,11 @@
 -- Headmaster Console — Supabase init migration
 --
--- In the Headmaster beta model, each user has ONE runtime container
--- provisioned by HermesHQ. The fleet/workspace/membership/agents tables
--- from the original starter-kit are kept but commented out — we may need
--- them when we add multi-agent or team features later.
+-- In the Headmaster beta model, each user has ONE managed Agent37 Cloud
+-- instance. The fleet/workspace/membership/agents tables from the original
+-- starter-kit are kept but commented out — we may need them when we add
+-- multi-agent or team features later.
 --
--- Supabase Auth manages user identity; HermesHQ manages the runtime.
+-- Supabase Auth manages user identity; Agent37 Cloud manages the runtime.
 -- All table access is server-side (service-role key); direct client
 -- table access is revoked.
 

@@ -13,7 +13,7 @@ export default async function MembersPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Members</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Team membership is managed by the HermesHQ backend for this console.
+          Team access is managed by the console profile gate while Agent37 runs the agent backend.
         </p>
       </div>
       <div className="overflow-hidden rounded-lg border">

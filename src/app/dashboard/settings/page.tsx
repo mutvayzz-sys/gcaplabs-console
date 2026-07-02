@@ -12,12 +12,12 @@ export default async function SettingsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Console settings for the HermesHQ-backed Headmaster runtime.
+          Console settings for the Agent37-backed Headmaster runtime.
         </p>
       </div>
       <div className="overflow-hidden rounded-lg border text-sm">
         <InfoRow label="App" value={branding.appName} />
-        <InfoRow label="Backend" value="HermesHQ" />
+        <InfoRow label="Backend" value="Agent37 Cloud" />
         <InfoRow label="Provisioning" value="Backend managed" last />
       </div>
     </div>

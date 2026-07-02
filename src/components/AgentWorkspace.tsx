@@ -86,7 +86,7 @@ export function AgentWorkspace({ agent, activeTab }: { agent: MergedAgent; activ
             <ChatSidebar />
           ) : (
             <div className='flex-1 p-4 text-sm text-muted-foreground'>
-              {activeTab === 'files' && 'Browse and edit files in the provisioned runtime.'}
+              {activeTab === 'files' && 'Browse and edit files in the Agent37 instance.'}
               {activeTab === 'integrations' && 'Connect third-party apps to this agent.'}
               {activeTab === 'settings' && 'Runtime details and connection status.'}
             </div>
@@ -123,14 +123,14 @@ function RuntimeSettings({ agent, currentPath }: { agent: MergedAgent; currentPa
       <div>
         <h1 className='text-xl font-semibold tracking-tight'>Runtime settings</h1>
         <p className='mt-2 text-sm text-muted-foreground'>
-          Read-only details for the HermesHQ-provisioned agent runtime.
+          Read-only details for the Agent37-managed runtime.
         </p>
       </div>
       <div className='overflow-hidden rounded-lg border text-sm'>
         <InfoRow label='Agent ID' value={agent.agent37_id} mono />
         <InfoRow label='Name' value={agent.name || 'Headmaster runtime'} />
         <InfoRow label='Status' value={agent.live_status || 'unknown'} />
-        <InfoRow label='Template' value={agent.template || 'HermesHQ'} />
+        <InfoRow label='Template' value={agent.template || 'agent37-hermes'} />
         <InfoRow label='Route' value={currentPath} mono last />
       </div>
     </div>

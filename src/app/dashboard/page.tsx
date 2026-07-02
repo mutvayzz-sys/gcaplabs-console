@@ -12,15 +12,15 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   await requireConsoleAdminOrRedirect(agentTabPath(MANAGED_AGENT_ID, "chat"));
-  const { agent, provision } = await getManagedAgent();
-  const runtimeReady = !!provision.runtime.base_url;
+  const { agent, instance, agent37Id } = await getManagedAgent();
+  const runtimeReady = instance.status === "running";
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Your Agent</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Managed by {branding.appName} HQ</p>
+          <p className="mt-1 text-sm text-muted-foreground">Powered by Agent37 Cloud</p>
         </div>
       </div>
 
@@ -35,8 +35,8 @@ export default async function DashboardPage() {
               <Badge variant={statusVariant(agent.live_status)}>{agent.live_status ?? "unknown"}</Badge>
             </div>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Your provisioned runtime. Open it to chat, browse files, review integrations, and
-              inspect settings without exposing backend provisioning controls.
+              Your managed Agent37 instance. Open it to chat, browse files, review integrations, and
+              inspect settings without exposing the shared Cloud API key.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
               <Feature icon={MessageSquare} label="Chats" />
@@ -47,8 +47,8 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right text-xs text-muted-foreground sm:block">
-              <div className="font-mono">{agent.agent37_id}</div>
-              <div>{runtimeReady ? "Runtime connected" : "Provisioning"}</div>
+              <div className="font-mono">{agent37Id}</div>
+              <div>{runtimeReady ? "Agent37 connected" : "Provisioning"}</div>
             </div>
             <Button asChild size="sm">
               <span>

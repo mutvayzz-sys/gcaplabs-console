@@ -1,4 +1,4 @@
-import { instanceFetch } from "@/lib/hermeshq";
+import { instanceFetch } from "@/lib/agent37";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError, readJson } from "@/lib/http";
 import { upstreamErrorMessage } from "../_helpers";
@@ -13,7 +13,7 @@ interface ResponsesBody {
 }
 
 // Run a chat turn and stream the agent's reply back as Server-Sent Events.
-// Each user has one provisioned container (from HermesHQ provision),
+// Each user has one Agent37 instance,
 // so we don't need an [id] param — instanceFetch resolves the user's runtime.
 export async function POST(request: Request) {
   try {

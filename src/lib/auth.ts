@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ApiError } from "@/lib/http";
-import { MANAGED_WORKSPACE_ID } from "@/lib/managed-agent";
 import type { AgentRow, Role } from "@/lib/types";
 
 // `db` is the privileged service-role client (RLS bypassed). All table access in this app goes
@@ -13,6 +14,22 @@ import type { AgentRow, Role } from "@/lib/types";
 export type DB = ReturnType<typeof createAdminClient>;
 
 export async function getSession() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (url && anonKey) {
+    const auth = (await headers()).get("authorization") ?? "";
+    const match = /^Bearer\s+(.+)$/i.exec(auth);
+    if (match) {
+      const supabase = createSupabaseJsClient(url, anonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(match[1]);
+      return { user };
+    }
+  }
+
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     if (process.env.NODE_ENV !== "production") {
       return {
@@ -78,16 +95,16 @@ export async function requireAgentAccess(agent37Id: string, access: "member" | "
 }
 
 // Gates the console's own admin surfaces (Agents list, Members, Settings) — distinct from
-// per-agent capabilities. Source of truth is the `memberships` role for the single managed
-// workspace, same table `requireAgentAccess` checks. Mirrors getSession()'s dev-mode shortcut so
+// per-agent capabilities. Source of truth is `profiles.beta_approved` for the signed-in user. Mirrors getSession()'s dev-mode shortcut so
 // local dev without Supabase configured isn't locked out.
 export async function isConsoleAdmin(userId: string): Promise<boolean> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return true;
   }
   const db = createAdminClient();
-  const role = await getRole(db, MANAGED_WORKSPACE_ID, userId);
-  return role === "admin";
+  const { data, error } = await db.from("profiles").select("beta_approved").eq("id", userId).maybeSingle();
+  if (error) throw new ApiError(500, "db_error", error.message);
+  return data?.beta_approved === true;
 }
 
 // Call at the top of a server component/page that should only render for console admins.
