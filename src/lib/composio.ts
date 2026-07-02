@@ -1,4 +1,5 @@
 import "server-only";
+import { ApiError } from "@/lib/http";
 
 /**
  * Composio client — connects third-party apps (Gmail, Slack, GitHub, ...) to the managed agent.
@@ -15,12 +16,13 @@ import "server-only";
 
 const BASE_URL = "https://backend.composio.dev/api/v3";
 
-export class ComposioError extends Error {
-  status: number;
+// handleError() (src/lib/http.ts) only recognizes ApiError/RuntimeError — anything else gets
+// collapsed to a generic "Internal server error" 500, hiding the actual cause. Throw ApiError
+// directly so Composio failures (bad key, disabled toolkit, etc.) surface their real message.
+export class ComposioError extends ApiError {
   constructor(status: number, message: string) {
-    super(message);
+    super(status, "composio_error", message);
     this.name = "ComposioError";
-    this.status = status;
   }
 }
 
@@ -41,9 +43,16 @@ async function composioFetch<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store",
   });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  let data: unknown = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new ComposioError(res.status, `Composio returned a non-JSON response (${res.status}): ${text.slice(0, 300)}`);
+    }
+  }
   if (!res.ok) {
-    const message = (data as { error?: { message?: string }; message?: string })?.error?.message ?? data?.message ?? res.statusText;
+    const message = (data as { error?: { message?: string }; message?: string })?.error?.message ?? (data as { message?: string })?.message ?? res.statusText;
     throw new ComposioError(res.status, message);
   }
   return data as T;
