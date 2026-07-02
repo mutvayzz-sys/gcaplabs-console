@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Loader2, Plug, Search, Unplug } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,8 @@ export function ComposioApps() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const requestSeq = useRef(0);
+  const searchParams = useSearchParams();
+  const registeredRef = useRef<string | null>(null);
 
   const fetchConnections = useCallback(async () => {
     const { connections: conns } = await apiFetch<{ connections: Connection[] }>('/api/chat/integrations/connections');
@@ -66,6 +69,23 @@ export function ComposioApps() {
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoadingConns(false));
   }, [fetchConnections]);
+
+  // After OAuth redirect back to this tab, register the MCP server so the agent
+  // gets a callable tool. Composio appends ?connected_account_id=... to the callback URL.
+  useEffect(() => {
+    const connectedAccountId = searchParams.get('connected_account_id');
+    if (!connectedAccountId || registeredRef.current === connectedAccountId) return;
+    registeredRef.current = connectedAccountId;
+    // We need the toolkit slug — fetch connections to find the one that was just connected.
+    fetchConnections().then((conns) => {
+      const conn = conns.find((c) => c.id === connectedAccountId);
+      if (!conn) return;
+      apiFetch('/api/chat/integrations/register-mcp', {
+        method: 'POST',
+        body: JSON.stringify({ toolkit: conn.toolkit.slug }),
+      }).catch((e: Error) => setError(`MCP registration failed: ${e.message}`));
+    });
+  }, [searchParams, fetchConnections]);
 
   const fetchPage = useCallback((query: string, sort: SortBy, pageCursor: string | null, seq: number) => {
     const qs = new URLSearchParams();
