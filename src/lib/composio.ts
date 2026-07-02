@@ -218,7 +218,7 @@ async function createMcpInstance(serverId: string, userId: string): Promise<Comp
 export async function ensureComposioMcpForUser(params: {
   authConfigId: string;
   userId: string;
-}): Promise<{ mcpUrl: string; serverId: string }> {
+}): Promise<{ mcpUrl: string; serverId: string; apiKey: string }> {
   // 1. Find or create the shared MCP server, with this auth_config_id included.
   let server = await findSharedMcpServer();
   if (!server) {
@@ -233,7 +233,10 @@ export async function ensureComposioMcpForUser(params: {
   // 2. Create (or re-create) a per-user instance.
   const instance = await createMcpInstance(server.id, params.userId);
 
-  return { mcpUrl: instance.connect_url, serverId: server.id };
+  // 3. Return the API key too — Composio's MCP requires an x-api-key header
+  // when require_mcp_api_key is enabled (default for new orgs). The gateway
+  // needs this to pass as a header when Hermes connects to the MCP URL.
+  return { mcpUrl: instance.connect_url, serverId: server.id, apiKey: apiKey() };
 }
 
 /**
