@@ -6,13 +6,17 @@ import type { AdminProfileRow } from "@/app/api/admin/users/route";
 
 export const dynamic = "force-dynamic";
 
-export default async function MembersPage() {
+const PAGE_SIZE = 20;
+const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,agent37_id,agent37_status,created_at";
+
+export default async function UsersPage() {
   await requireConsoleAdminOrRedirect(agentTabPath(MANAGED_AGENT_ID, "chat"));
   const { db } = await requireUser();
-  const { data } = await db
+  const { data, count } = await db
     .from("profiles")
-    .select("id,email,display_name,beta_approved,agent37_id,agent37_status,created_at")
-    .order("created_at", { ascending: false });
+    .select(PROFILE_COLUMNS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(0, PAGE_SIZE - 1);
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -22,7 +26,7 @@ export default async function MembersPage() {
           Signups don&apos;t get an Agent37 runtime until you approve them here — that&apos;s the billing gate.
         </p>
       </div>
-      <UsersTable initialUsers={(data ?? []) as AdminProfileRow[]} />
+      <UsersTable initialUsers={(data ?? []) as AdminProfileRow[]} initialTotal={count ?? 0} pageSize={PAGE_SIZE} />
     </div>
   );
 }

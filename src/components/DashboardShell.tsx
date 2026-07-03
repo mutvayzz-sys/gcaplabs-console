@@ -2,15 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Settings, Users } from "lucide-react";
+import { LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
 import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
 import { cn } from "@/lib/utils";
 
+// Visible to every signed-in user, admin or not.
+const USER_NAV = [
+  { href: "/dashboard", label: "Agent", icon: LayoutGrid, exact: true },
+  { href: "/dashboard/settings", label: "Account", icon: Settings, exact: false },
+];
+
+// Additive: rendered as a separate labeled section below USER_NAV, only for console admins
+// (profiles.is_admin) — distinct from beta_approved, see src/lib/auth.ts.
 const ADMIN_NAV = [
-  { href: "/dashboard", label: "Agents", icon: LayoutGrid, exact: true },
-  { href: "/dashboard/members", label: "Users", icon: Users, exact: false },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings, exact: false },
+  { href: "/dashboard/admin/users", label: "Users", icon: Users, exact: false },
+  { href: "/dashboard/admin/config", label: "Config", icon: SlidersHorizontal, exact: false },
 ];
 
 export function DashboardShell({
@@ -23,7 +30,26 @@ export function DashboardShell({
   isAdmin: boolean;
 }) {
   const pathname = usePathname();
-  const nav = isAdmin ? ADMIN_NAV : [];
+
+  function renderNavItems(items: typeof USER_NAV) {
+    return items.map((item) => {
+      const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+      const Icon = item.icon;
+      return (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={cn(
+            "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+            active ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <Icon className="h-4 w-4" />
+          {item.label}
+        </Link>
+      );
+    });
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -36,25 +62,14 @@ export function DashboardShell({
           <span className="truncate font-semibold">{branding.appName}</span>
         </div>
 
-        <nav className="mt-6 flex flex-col gap-1">
-          {nav.map((item) => {
-            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <nav className="mt-6 flex flex-col gap-1">{renderNavItems(USER_NAV)}</nav>
+
+        {isAdmin ? (
+          <div className="mt-4">
+            <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Admin</div>
+            <nav className="flex flex-col gap-1">{renderNavItems(ADMIN_NAV)}</nav>
+          </div>
+        ) : null}
 
         {/* Account + workspace switcher, pinned to the bottom near the user's identity. */}
         <div className="mt-auto border-t pt-3">

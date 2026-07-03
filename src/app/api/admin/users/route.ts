@@ -13,16 +13,27 @@ export interface AdminProfileRow {
 }
 
 const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,agent37_id,agent37_status,created_at";
+const DEFAULT_PAGE_SIZE = 20;
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { db } = await requireConsoleAdmin();
-    const { data, error } = await db
-      .from("profiles")
-      .select(PROFILE_COLUMNS)
-      .order("created_at", { ascending: false });
+    const url = new URL(request.url);
+    const q = url.searchParams.get("q")?.trim() ?? "";
+    const page = Math.max(1, Number(url.searchParams.get("page") ?? "1") || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(url.searchParams.get("pageSize") ?? String(DEFAULT_PAGE_SIZE)) || DEFAULT_PAGE_SIZE));
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    // q is embedded into a PostgREST .or() filter string below — strip characters with
+    // special meaning in that grammar (,()."*) so a search term can't inject extra filter
+    // clauses (this route is admin-only, but don't rely on that alone).
+    const safeQ = q.replace(/[,()."*]/g, "");
+    let query = db.from("profiles").select(PROFILE_COLUMNS, { count: "exact" }).order("created_at", { ascending: false });
+    if (safeQ) query = query.or(`email.ilike.%${safeQ}%,display_name.ilike.%${safeQ}%`);
+    const { data, error, count } = await query.range(from, to);
     if (error) throw new ApiError(500, "db_error", error.message);
-    return json({ users: (data ?? []) as AdminProfileRow[] });
+    return json({ users: (data ?? []) as AdminProfileRow[], total: count ?? 0, page, pageSize });
   } catch (e) {
     return handleError(e);
   }
