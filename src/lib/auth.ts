@@ -114,6 +114,18 @@ export const isConsoleAdmin = cache(async function isConsoleAdmin(userId: string
   return data?.is_admin === true;
 });
 
+// Whether the user is an org admin for their own organization — used by DashboardShell to decide
+// whether to show the "Org" nav item. Distinct from isConsoleAdmin (site-wide).
+export const isOrgAdmin = cache(async function isOrgAdmin(userId: string): Promise<boolean> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return false;
+  }
+  const db = createAdminClient();
+  const { data, error } = await db.from("profiles").select("organization_id,org_role").eq("id", userId).maybeSingle();
+  if (error) throw new ApiError(500, "db_error", error.message);
+  return Boolean(data?.organization_id) && data?.org_role === "admin";
+});
+
 // Call at the top of a server component/page that should only render for console admins.
 // Redirects everyone else to `redirectTo` (typically the caller's agent workspace).
 export async function requireConsoleAdminOrRedirect(redirectTo: string): Promise<void> {
@@ -128,4 +140,31 @@ export async function requireConsoleAdmin(): Promise<{ db: DB; user: { id: strin
   const { db, user } = await requireUser();
   if (!(await isConsoleAdmin(user.id))) throw new ApiError(403, "forbidden", "Console admin required");
   return { db, user };
+}
+
+// Gates org-scoped admin surfaces (e.g. /dashboard/org) — distinct from `is_admin` (site-wide,
+// across every org). An org admin manages only their own organization's members. Returns the
+// caller's organization_id so callers can scope subsequent queries to it.
+export async function requireOrgAdmin(): Promise<{ db: DB; user: { id: string }; organizationId: string }> {
+  const { db, user } = await requireUser();
+  const { data, error } = await db
+    .from("profiles")
+    .select("organization_id,org_role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error) throw new ApiError(500, "db_error", error.message);
+  if (!data?.organization_id || data.org_role !== "admin") {
+    throw new ApiError(403, "forbidden", "Organization admin required");
+  }
+  return { db, user, organizationId: data.organization_id as string };
+}
+
+// Page-component counterpart of requireOrgAdmin — redirects instead of throwing.
+export async function requireOrgAdminOrRedirect(redirectTo: string): Promise<{ db: DB; organizationId: string }> {
+  const { user } = await getSession();
+  if (!user) redirect("/login");
+  const db = createAdminClient();
+  const { data } = await db.from("profiles").select("organization_id,org_role").eq("id", user.id).maybeSingle();
+  if (!data?.organization_id || data.org_role !== "admin") redirect(redirectTo);
+  return { db, organizationId: data.organization_id as string };
 }

@@ -1,5 +1,18 @@
 export type Role = "admin";
 
+// A user's role within their organization (see supabase/migrations/0006_organizations.sql) —
+// unrelated to the dormant `Role`/`Workspace*` types below, which belong to an older,
+// never-revived "workspace owns agents" model. Organizations are a lighter grouping +
+// org-scoped-admin layer; agent ownership stays 1:1 per user regardless of org_role.
+export type OrgRole = "admin" | "member";
+
+export interface Organization {
+  id: string;
+  name: string;
+  created_by: string | null;
+  created_at: string;
+}
+
 export interface Workspace {
   id: string;
   name: string;

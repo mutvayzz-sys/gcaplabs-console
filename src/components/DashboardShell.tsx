@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
+import { Building2, LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
 import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
 import { cn } from "@/lib/utils";
@@ -17,17 +17,24 @@ const USER_NAV = [
 // (profiles.is_admin) — distinct from beta_approved, see src/lib/auth.ts.
 const ADMIN_NAV = [
   { href: "/dashboard/admin/users", label: "Users", icon: Users, exact: false },
+  { href: "/dashboard/admin/organizations", label: "Organizations", icon: Building2, exact: false },
   { href: "/dashboard/admin/config", label: "Config", icon: SlidersHorizontal, exact: false },
 ];
+
+// Additive: only for a user whose own org_role is 'admin' in their organization — distinct from
+// isAdmin (site-wide across every org), see isOrgAdmin() in src/lib/auth.ts.
+const ORG_NAV = [{ href: "/dashboard/org", label: "My Organization", icon: Building2, exact: false }];
 
 export function DashboardShell({
   children,
   userEmail,
   isAdmin,
+  isOrgAdmin,
 }: {
   children: React.ReactNode;
   userEmail: string;
   isAdmin: boolean;
+  isOrgAdmin: boolean;
 }) {
   const pathname = usePathname();
 
@@ -63,6 +70,13 @@ export function DashboardShell({
         </div>
 
         <nav className="mt-6 flex flex-col gap-1">{renderNavItems(USER_NAV)}</nav>
+
+        {isOrgAdmin ? (
+          <div className="mt-4">
+            <div className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Organization</div>
+            <nav className="flex flex-col gap-1">{renderNavItems(ORG_NAV)}</nav>
+          </div>
+        ) : null}
 
         {isAdmin ? (
           <div className="mt-4">
