@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
+import { Activity, Building2, LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
 import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ const USER_NAV = [
 const ADMIN_NAV = [
   { href: "/dashboard/admin/users", label: "Users", icon: Users, exact: false },
   { href: "/dashboard/admin/organizations", label: "Organizations", icon: Building2, exact: false },
+  { href: "/dashboard/admin/health", label: "Health", icon: Activity, exact: false },
   { href: "/dashboard/admin/config", label: "Config", icon: SlidersHorizontal, exact: false },
 ];
 
