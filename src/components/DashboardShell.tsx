@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Building2, LayoutGrid, Settings, SlidersHorizontal, Users } from "lucide-react";
+import { Activity, Building2, LayoutGrid, Megaphone, MessageSquare, Settings, SlidersHorizontal, Users } from "lucide-react";
 import { branding } from "@/config/branding";
 import { AccountMenu } from "@/components/AccountMenu";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 // Visible to every signed-in user, admin or not.
@@ -18,6 +20,8 @@ const USER_NAV = [
 const ADMIN_NAV = [
   { href: "/dashboard/admin/users", label: "Users", icon: Users, exact: false },
   { href: "/dashboard/admin/organizations", label: "Organizations", icon: Building2, exact: false },
+  { href: "/dashboard/admin/messages", label: "Messages", icon: MessageSquare, exact: false },
+  { href: "/dashboard/admin/announcements", label: "Announcements", icon: Megaphone, exact: false },
   { href: "/dashboard/admin/health", label: "Health", icon: Activity, exact: false },
   { href: "/dashboard/admin/config", label: "Config", icon: SlidersHorizontal, exact: false },
 ];
@@ -31,18 +35,22 @@ export function DashboardShell({
   userEmail,
   isAdmin,
   isOrgAdmin,
+  unreadMessages,
 }: {
   children: React.ReactNode;
   userEmail: string;
   isAdmin: boolean;
   isOrgAdmin: boolean;
+  unreadMessages: number;
 }) {
   const pathname = usePathname();
+  const badgeCounts: Record<string, number> = { "/dashboard/admin/messages": unreadMessages };
 
   function renderNavItems(items: typeof USER_NAV) {
     return items.map((item) => {
       const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
       const Icon = item.icon;
+      const count = badgeCounts[item.href];
       return (
         <Link
           key={item.href}
@@ -53,7 +61,12 @@ export function DashboardShell({
           )}
         >
           <Icon className="h-4 w-4" />
-          {item.label}
+          <span className="flex-1">{item.label}</span>
+          {count ? (
+            <Badge variant="destructive" className="h-5 min-w-5 justify-center rounded-full px-1 text-[11px]">
+              {count}
+            </Badge>
+          ) : null}
         </Link>
       );
     });
@@ -92,7 +105,8 @@ export function DashboardShell({
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-y-auto">
+      <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+        <AnnouncementBanner />
         <div className="mx-auto w-full max-w-7xl p-4 md:p-6">{children}</div>
       </main>
     </div>

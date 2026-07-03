@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { MFASetupModal } from "@/components/settings/MFASetupModal";
+import { SendMessageForm } from "@/components/settings/SendMessageForm";
 
 // Password change, MFA, and sign-out-everywhere all run through the browser Supabase client
 // (the caller's own session) — NOT the service-role admin client used everywhere else in this
@@ -17,6 +18,7 @@ export function SecurityTab() {
       <PasswordSection />
       <MFASection />
       <SignOutSection />
+      <SendMessageForm />
     </div>
   );
 }
