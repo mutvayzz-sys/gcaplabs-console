@@ -11,7 +11,7 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminProfileRow[] }
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  function toggleApproval(user: AdminProfileRow) {
+  function updateUser(user: AdminProfileRow, patch: { beta_approved?: boolean; is_admin?: boolean }) {
     setPendingId(user.id);
     setErrorMessage(null);
     startTransition(async () => {
@@ -19,7 +19,7 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminProfileRow[] }
         const res = await fetch("/api/admin/users", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: user.id, beta_approved: !user.beta_approved }),
+          body: JSON.stringify({ id: user.id, ...patch }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error?.message ?? "Failed to update user");
@@ -36,9 +36,10 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminProfileRow[] }
     <div className="space-y-3">
       {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
       <div className="overflow-hidden rounded-lg border">
-        <div className="grid grid-cols-[1fr_120px_140px_100px] border-b bg-muted/40 px-4 py-2.5 text-xs font-medium text-muted-foreground">
+        <div className="grid grid-cols-[1fr_110px_90px_140px_100px] border-b bg-muted/40 px-4 py-2.5 text-xs font-medium text-muted-foreground">
           <span>Email</span>
           <span>Approved</span>
+          <span>Admin</span>
           <span>Runtime</span>
           <span />
         </div>
@@ -46,20 +47,29 @@ export function UsersTable({ initialUsers }: { initialUsers: AdminProfileRow[] }
           <div className="px-4 py-6 text-sm text-muted-foreground">No signups yet.</div>
         ) : (
           users.map((user) => (
-            <div key={user.id} className="grid grid-cols-[1fr_120px_140px_100px] items-center border-b px-4 py-3 text-sm last:border-b-0">
+            <div key={user.id} className="grid grid-cols-[1fr_110px_90px_140px_100px] items-center border-b px-4 py-3 text-sm last:border-b-0">
               <span className="truncate font-medium">{user.email ?? user.display_name ?? user.id}</span>
               <span>
                 <Badge variant={user.beta_approved ? "success" : "warning"}>{user.beta_approved ? "Approved" : "Pending"}</Badge>
               </span>
+              <span>{user.is_admin ? <Badge variant="success">Admin</Badge> : null}</span>
               <span className="truncate text-xs text-muted-foreground">{user.agent37_id ? (user.agent37_status ?? "provisioned") : "none yet"}</span>
-              <span>
+              <span className="flex flex-col gap-1">
                 <Button
                   size="sm"
                   variant={user.beta_approved ? "outline" : "default"}
                   disabled={isPending && pendingId === user.id}
-                  onClick={() => toggleApproval(user)}
+                  onClick={() => updateUser(user, { beta_approved: !user.beta_approved })}
                 >
                   {isPending && pendingId === user.id ? "…" : user.beta_approved ? "Revoke" : "Approve"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={isPending && pendingId === user.id}
+                  onClick={() => updateUser(user, { is_admin: !user.is_admin })}
+                >
+                  {user.is_admin ? "Remove admin" : "Make admin"}
                 </Button>
               </span>
             </div>

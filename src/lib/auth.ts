@@ -101,16 +101,17 @@ export async function requireAgentAccess(agent37Id: string, access: "member" | "
 }
 
 // Gates the console's own admin surfaces (Agents list, Members, Settings) — distinct from
-// per-agent capabilities. Source of truth is `profiles.beta_approved` for the signed-in user. Mirrors getSession()'s dev-mode shortcut so
-// local dev without Supabase configured isn't locked out.
+// per-agent capabilities, and distinct from `beta_approved` (which only gates whether a
+// signup gets its own Agent37 runtime). Source of truth is `profiles.is_admin`. Mirrors
+// getSession()'s dev-mode shortcut so local dev without Supabase configured isn't locked out.
 export const isConsoleAdmin = cache(async function isConsoleAdmin(userId: string): Promise<boolean> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return true;
   }
   const db = createAdminClient();
-  const { data, error } = await db.from("profiles").select("beta_approved").eq("id", userId).maybeSingle();
+  const { data, error } = await db.from("profiles").select("is_admin").eq("id", userId).maybeSingle();
   if (error) throw new ApiError(500, "db_error", error.message);
-  return data?.beta_approved === true;
+  return data?.is_admin === true;
 });
 
 // Call at the top of a server component/page that should only render for console admins.
