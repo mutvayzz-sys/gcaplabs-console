@@ -134,6 +134,8 @@ export const agent37 = {
   createAgent: (body: CreateAgentInput) =>
     hostingCall<Agent>("/instances", { method: "POST", body: JSON.stringify(body) }),
   deleteAgent: (id: string) => hostingCall<{ id: string; deleted: boolean }>(`/instances/${id}`, { method: "DELETE" }),
+  updateAgent: (id: string, body: { name?: string; metadata?: Record<string, unknown> }) =>
+    hostingCall<Agent>(`/instances/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
   start: (id: string) => hostingCall<{ id: string; status: string }>(`/instances/${id}/start`, { method: "POST" }),
   stop: (id: string) => hostingCall<{ id: string; status: string }>(`/instances/${id}/stop`, { method: "POST" }),
   restart: (id: string) => hostingCall<{ id: string; status: string }>(`/instances/${id}/restart`, { method: "POST" }),
