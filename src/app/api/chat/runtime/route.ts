@@ -6,20 +6,19 @@
 // resolved server-side from the logged-in user's profile (profiles.agent37_id).
 //
 // update_available is computed by comparing the live instance's image_ref against
-// the latest published image_ref for its template — see detectUpdateAvailable()
+// the latest published image_ref for its template — see getManagedAgent()
 // in lib/managed-agent.ts.
 
 import { agent37, getCurrentAgent37Runtime } from "@/lib/agent37";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
-import { agentFromInstance, detectUpdateAvailable } from "@/lib/managed-agent";
+import { getManagedAgent } from "@/lib/managed-agent";
 
 export async function GET() {
   try {
     await requireUser();
-    const runtime = await getCurrentAgent37Runtime();
-    const updateAvailable = await detectUpdateAvailable(runtime.instance);
-    return json(agentFromInstance(runtime.instance, updateAvailable));
+    const { agent } = await getManagedAgent();
+    return json(agent);
   } catch (e) {
     return handleError(e);
   }

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
@@ -13,7 +14,12 @@ import type { AgentRow, Role } from "@/lib/types";
 // session-derived user id has been checked against the memberships table.
 export type DB = ReturnType<typeof createAdminClient>;
 
-export async function getSession() {
+// getSession()/isConsoleAdmin() below are wrapped in React's per-request cache() — a single page
+// render calls each of these from the layout, the page, and requireUser() independently, and
+// without memoization every one of those is a separate round trip to Supabase (Auth + profiles),
+// which is in ap-south-1 while this app runs in iad1. cache() collapses repeat calls within the
+// same request down to one.
+export const getSession = cache(async function getSession() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && anonKey) {
@@ -46,7 +52,7 @@ export async function getSession() {
     data: { user },
   } = await supabase.auth.getUser();
   return { user };
-}
+});
 
 export async function requireUser() {
   const { user } = await getSession();
@@ -97,7 +103,7 @@ export async function requireAgentAccess(agent37Id: string, access: "member" | "
 // Gates the console's own admin surfaces (Agents list, Members, Settings) — distinct from
 // per-agent capabilities. Source of truth is `profiles.beta_approved` for the signed-in user. Mirrors getSession()'s dev-mode shortcut so
 // local dev without Supabase configured isn't locked out.
-export async function isConsoleAdmin(userId: string): Promise<boolean> {
+export const isConsoleAdmin = cache(async function isConsoleAdmin(userId: string): Promise<boolean> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return true;
   }
@@ -105,7 +111,7 @@ export async function isConsoleAdmin(userId: string): Promise<boolean> {
   const { data, error } = await db.from("profiles").select("beta_approved").eq("id", userId).maybeSingle();
   if (error) throw new ApiError(500, "db_error", error.message);
   return data?.beta_approved === true;
-}
+});
 
 // Call at the top of a server component/page that should only render for console admins.
 // Redirects everyone else to `redirectTo` (typically the caller's agent workspace).
