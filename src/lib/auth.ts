@@ -114,3 +114,11 @@ export async function requireConsoleAdminOrRedirect(redirectTo: string): Promise
   if (!user) redirect("/login");
   if (!(await isConsoleAdmin(user.id))) redirect(redirectTo);
 }
+
+// API-route counterpart of requireConsoleAdminOrRedirect — throws instead of redirecting, for BFF
+// routes (e.g. approving another user's beta_approved flag) rather than page components.
+export async function requireConsoleAdmin(): Promise<{ db: DB; user: { id: string; email?: string | null } }> {
+  const { db, user } = await requireUser();
+  if (!(await isConsoleAdmin(user.id))) throw new ApiError(403, "forbidden", "Console admin required");
+  return { db, user };
+}

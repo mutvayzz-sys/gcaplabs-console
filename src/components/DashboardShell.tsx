@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const ADMIN_NAV = [
   { href: "/dashboard", label: "Agents", icon: LayoutGrid, exact: true },
-  { href: "/dashboard/members", label: "Members", icon: Users, exact: false },
+  { href: "/dashboard/members", label: "Users", icon: Users, exact: false },
   { href: "/dashboard/settings", label: "Settings", icon: Settings, exact: false },
 ];
 

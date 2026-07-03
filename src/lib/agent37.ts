@@ -232,7 +232,7 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
   const { db, user } = await requireUser();
   const { data: profile, error: profileError } = await db
     .from("profiles")
-    .select("id,email,display_name,agent37_id")
+    .select("id,email,display_name,agent37_id,beta_approved")
     .eq("id", user.id)
     .maybeSingle();
   if (profileError) throw new Agent37Error(500, "db_error", profileError.message);
@@ -242,6 +242,13 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
     const instance = await agent37.getAgent(agentId);
     await db.from("profiles").update({ agent37_status: instance.status, agent37_name: instance.name }).eq("id", user.id);
     return { id: agentId, instance };
+  }
+
+  // No runtime yet — this is the one place that spends money (agent37.createAgent provisions a
+  // real, billed instance). Gate it on admin approval so open signup can't spin up instances for
+  // anyone who registers; an operator must flip profiles.beta_approved first.
+  if ((profile as { beta_approved?: boolean } | null)?.beta_approved !== true) {
+    throw new Agent37Error(403, "not_approved", "Your account is pending approval before a runtime can be created.");
   }
 
   const email = (user as { email?: string | null }).email ?? (profile as { email?: string | null } | null)?.email ?? null;

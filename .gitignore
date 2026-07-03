@@ -36,3 +36,4 @@ next-dev.err.log
 
 # supabase CLI
 /supabase/.temp/
+.env*
