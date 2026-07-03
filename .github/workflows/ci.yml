@@ -21,7 +21,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
       SUPABASE_SERVICE_ROLE_KEY: sb_secret_ci_placeholder
-      HERMESHQ_URL: https://hq.gcaplabs.com
       NEXT_PUBLIC_SITE_URL: https://console.gcaplabs.com
       AGENT37_API_KEY: ci_placeholder
     steps:

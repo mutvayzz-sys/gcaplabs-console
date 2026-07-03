@@ -1,14 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Files, MessageSquare, Plug, Settings } from 'lucide-react';
+import { DollarSign, Files, MessageSquare, Plug, Settings } from 'lucide-react';
+import { BudgetDialog } from '@/components/BudgetDialog';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatView } from '@/components/chat/ChatView';
 import { FilesTab } from '@/components/files/FilesTab';
 import { ComposioApps } from '@/components/integrations/ComposioApps';
+import { OpenPortButtons } from '@/components/OpenPortButtons';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { agentTabPath, type AgentTab } from '@/lib/dashboard-tabs';
 import { statusVariant } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -118,14 +122,32 @@ function RuntimeIntegrations() {
 }
 
 function RuntimeSettings({ agent, currentPath }: { agent: MergedAgent; currentPath: string }) {
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const running = agent.live_status === 'running';
+
   return (
     <div className='mx-auto max-w-3xl space-y-6 p-8'>
-      <div>
-        <h1 className='text-xl font-semibold tracking-tight'>Runtime settings</h1>
-        <p className='mt-2 text-sm text-muted-foreground'>
-          Read-only details for the Agent37-managed runtime.
-        </p>
+      <div className='flex flex-wrap items-start justify-between gap-4'>
+        <div>
+          <h1 className='text-xl font-semibold tracking-tight'>Runtime settings</h1>
+          <p className='mt-2 text-sm text-muted-foreground'>
+            Details, spend, and Agent37-hosted app shortcuts for the managed runtime.
+          </p>
+        </div>
+        <Button type='button' variant='outline' size='sm' onClick={() => setBudgetOpen(true)}>
+          <DollarSign className='h-4 w-4' />
+          Usage
+        </Button>
       </div>
+
+      <div className='rounded-lg border p-4'>
+        <div className='text-sm font-medium'>Open in Agent37</div>
+        <p className='mt-1 text-sm text-muted-foreground'>
+          Short-lived signed links for live desktop, terminal, and file ports exposed by this runtime.
+        </p>
+        <OpenPortButtons ports={agent.ports} disabled={!running} className='mt-3' />
+      </div>
+
       <div className='overflow-hidden rounded-lg border text-sm'>
         <InfoRow label='Agent ID' value={agent.agent37_id} mono />
         <InfoRow label='Name' value={agent.name || 'Headmaster runtime'} />
@@ -133,6 +155,8 @@ function RuntimeSettings({ agent, currentPath }: { agent: MergedAgent; currentPa
         <InfoRow label='Template' value={agent.template || 'agent37-hermes'} />
         <InfoRow label='Route' value={currentPath} mono last />
       </div>
+
+      <BudgetDialog open={budgetOpen} onOpenChange={setBudgetOpen} />
     </div>
   );
 }

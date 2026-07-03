@@ -1,24 +1,5 @@
 import { NextResponse } from "next/server";
 
-/**
- * RuntimeError — the error shape all upstream API calls throw.
- * Originally Agent37Error; renamed but structurally identical (status + code + message)
- * so existing catch blocks and handleError keep working.
- */
-export class RuntimeError extends Error {
-  status: number;
-  code: string;
-  constructor(status: number, code: string, message: string) {
-    super(message);
-    this.name = "RuntimeError";
-    this.status = status;
-    this.code = code;
-  }
-}
-
-// Back-compat alias — old import sites still work.
-export const Agent37Error = RuntimeError;
-
 export class ApiError extends Error {
   status: number;
   code: string;
@@ -46,8 +27,14 @@ export function apiError(message: string, status = 400, code = "error") {
   return NextResponse.json({ error: { code, message } }, { status });
 }
 
+function isRuntimeError(e: unknown): e is { status: number; code: string; message: string } {
+  if (!(e instanceof Error)) return false;
+  const maybe = e as Error & { status?: unknown; code?: unknown };
+  return typeof maybe.status === "number" && typeof maybe.code === "string";
+}
+
 export function handleError(e: unknown) {
-  if (e instanceof ApiError || e instanceof RuntimeError) {
+  if (e instanceof ApiError || isRuntimeError(e)) {
     return apiError(e.message, e.status, e.code);
   }
   console.error("[api]", e);

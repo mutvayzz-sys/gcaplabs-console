@@ -15,7 +15,12 @@ import type {
   Usage,
 } from "@/lib/types";
 
+// The Hosting API base (control plane). A code constant, not an env var — there's no
+// per-deployment reason to change it (point it elsewhere only for local API work, by editing here).
 const HOSTING_BASE = "https://api.agent37.com";
+
+// The per-instance Agents API (data plane — chat /v1/responses, /v1/models, /v1/sessions,
+// /v1/files) is served on the instance host, not the control-plane base above.
 const INSTANCE_DOMAIN = "agent37.app";
 const DEFAULT_TEMPLATE = process.env.AGENT37_TEMPLATE || "agent37-hermes";
 const DEFAULT_AGENT_NAME = process.env.AGENT37_DEFAULT_AGENT_NAME || "Headmaster runtime";
@@ -57,7 +62,8 @@ async function parseAgent37<T>(res: Response, augment402 = false): Promise<T> {
     const err = raw.error ?? raw;
     let message = err.message || res.statusText;
     if (augment402 && res.status === 402) {
-      message = `${message} (Agent37 payment required — fund the Agent37 Cloud wallet, then retry.)`;
+      // Almost always an unfunded wallet at create/start time — point the operator at billing.
+      message = `${message} (Agent37 payment required — fund your wallet under Cloud → Billing in the dashboard, then retry.)`;
     }
     throw new Agent37Error(res.status, err.code || "error", message);
   }
@@ -84,6 +90,11 @@ async function hostingCall<T>(path: string, init?: RequestInit): Promise<T> {
   return parseAgent37<T>(res, true);
 }
 
+// Raw fetch against a specific instance's Agents API (data plane) with the shared bearer. Returns the
+// raw Response so callers can stream SSE, upload bytes, or stream a download — things the JSON
+// helper can't. A ReadableStream request body is buffered to an ArrayBuffer first so undici sends a
+// Content-Length instead of chunked transfer encoding; the Agent37 instance proxy drops chunked
+// upload bodies on file writes.
 export async function instanceFetchForId(id: string, path: string, init?: RequestInit): Promise<Response> {
   const body = init?.body instanceof ReadableStream ? await new Response(init.body).arrayBuffer() : init?.body;
   return fetch(`${instanceBaseUrl(id)}${path}`, {
