@@ -1,16 +1,16 @@
-# Agent37 Starter Kit
+# GCAP Labs Console
 
-A full-stack starter for building your own agent app on the [Agent37](https://www.agent37.com) Cloud API — auth, chat, files, integrations, and fleet management, with your choice of Hermes or OpenClaw (or your own image). Fork it, rebrand it, ship it.
+A full-stack starter for building your own agent app on the [Runtime Provider](https://docs.runtime-provider.example) Cloud API — auth, chat, files, integrations, and fleet management, with your choice of Runtime or OpenClaw (or your own image). Fork it, rebrand it, ship it.
 
 <p align="center">
-  <img src="screenshots/demo.gif" alt="Demo of the Agent37 Starter Kit dashboard and agent workspace" width="100%" />
+  <img src="screenshots/demo.gif" alt="Demo of the GCAP Labs Console dashboard and agent workspace" width="100%" />
 </p>
 
 ## Setup
 
 **1. Get two keys** (both behind a login, so only you can fetch them):
 
-- `AGENT37_API_KEY` — Agent37 dashboard → **Cloud → API keys**, then **fund the wallet** (Cloud → Billing).
+- `RUNTIME_API_KEY` — provider dashboard → **Cloud → API keys**, then **fund the wallet** (Cloud → Billing).
 - `SUPABASE_ACCESS_TOKEN` — [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens).
 
 **2. Hand it to your coding agent.** Open this folder in Claude Code / Codex and paste:

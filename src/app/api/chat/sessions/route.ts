@@ -1,4 +1,4 @@
-import { headmasterAgent } from "@/lib/agent37";
+import { headmasterAgent } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError } from "@/lib/http";
 

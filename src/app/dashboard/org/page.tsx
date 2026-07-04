@@ -7,7 +7,7 @@ import type { AdminProfileRow } from "@/app/api/admin/users/route";
 
 export const dynamic = "force-dynamic";
 
-const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,agent37_id,agent37_status,created_at";
+const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,runtime_id,runtime_status,created_at";
 
 export default async function OrgPage() {
   const { db, organizationId } = await requireOrgAdminOrRedirect(agentTabPath(MANAGED_AGENT_ID, "chat"));
@@ -25,7 +25,7 @@ export default async function OrgPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{org?.name ?? "Your organization"}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage members of your organization. Approving a member gives them their own Agent37 runtime.
+          Manage members of your organization. Approving a member gives them their own managed runtime.
         </p>
       </div>
       <InviteMemberForm />

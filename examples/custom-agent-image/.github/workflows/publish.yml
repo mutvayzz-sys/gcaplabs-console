@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest # GitHub's amd64 runner — builds the right arch for Agent37
+    runs-on: ubuntu-latest # GitHub's amd64 runner — builds the right arch for Runtime Provider
     steps:
       - uses: actions/checkout@v4
 

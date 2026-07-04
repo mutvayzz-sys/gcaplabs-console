@@ -38,6 +38,40 @@ function isActive(c: Connection): boolean {
 
 type SubTab = 'browse' | 'connected';
 
+const OAUTH_POPUP_FEATURES = [
+  'popup=yes',
+  'width=560',
+  'height=760',
+  'menubar=no',
+  'toolbar=no',
+  'location=yes',
+  'status=yes',
+  'scrollbars=yes',
+  'resizable=yes',
+].join(',');
+
+type OAuthPopupMessage = {
+  type: 'composio-oauth';
+  status: 'success' | 'error';
+  connectedAccountId?: string;
+  error?: string;
+};
+
+function oauthErrorFromParams(searchParams: ReturnType<typeof useSearchParams>): string | null {
+  return (
+    searchParams.get('oauth_error') ||
+    searchParams.get('error_description') ||
+    searchParams.get('error') ||
+    searchParams.get('message')
+  );
+}
+
+function isComposioOAuthMessage(value: unknown): value is OAuthPopupMessage {
+  if (!value || typeof value !== 'object') return false;
+  const data = value as { type?: unknown; status?: unknown };
+  return data.type === 'composio-oauth' && (data.status === 'success' || data.status === 'error');
+}
+
 export function ComposioApps() {
   const [tab, setTab] = useState<SubTab>('browse');
   const [search, setSearch] = useState('');
@@ -56,12 +90,46 @@ export function ComposioApps() {
   const requestSeq = useRef(0);
   const searchParams = useSearchParams();
   const registeredRef = useRef<string | null>(null);
+  const oauthPopupRef = useRef<Window | null>(null);
+  const oauthPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchConnections = useCallback(async () => {
     const { connections: conns } = await apiFetch<{ connections: Connection[] }>('/api/chat/integrations/connections');
     setConnections(conns);
     return conns;
   }, []);
+
+  const clearOAuthPoll = useCallback(() => {
+    if (oauthPollRef.current) {
+      clearInterval(oauthPollRef.current);
+      oauthPollRef.current = null;
+    }
+  }, []);
+
+  const completeOAuthConnection = useCallback(
+    async (connectedAccountId: string, notifyOpener = false) => {
+      if (registeredRef.current === connectedAccountId) return;
+      registeredRef.current = connectedAccountId;
+
+      const conns = await fetchConnections();
+      const conn = conns.find((c) => c.id === connectedAccountId);
+      if (conn) {
+        await apiFetch('/api/chat/integrations/register-mcp', {
+          method: 'POST',
+          body: JSON.stringify({ toolkit: conn.toolkit.slug }),
+        });
+        setTab('connected');
+      }
+
+      if (notifyOpener && window.opener) {
+        window.opener.postMessage(
+          { type: 'composio-oauth', status: 'success', connectedAccountId } satisfies OAuthPopupMessage,
+          window.location.origin
+        );
+      }
+    },
+    [fetchConnections]
+  );
 
   useEffect(() => {
     setLoadingConns(true);
@@ -70,22 +138,68 @@ export function ComposioApps() {
       .finally(() => setLoadingConns(false));
   }, [fetchConnections]);
 
-  // After OAuth redirect back to this tab, register the MCP server so the agent
-  // gets a callable tool. Composio appends ?connected_account_id=... to the callback URL.
+  useEffect(() => {
+    return () => clearOAuthPoll();
+  }, [clearOAuthPoll]);
+
+  useEffect(() => {
+    function onOAuthMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin || !isComposioOAuthMessage(event.data)) return;
+      clearOAuthPoll();
+      oauthPopupRef.current = null;
+      setConnecting(null);
+
+      if (event.data.status === 'success') {
+        setError(null);
+        fetchConnections()
+          .then(() => setTab('connected'))
+          .catch((e: Error) => setError(e.message));
+        return;
+      }
+
+      setError(event.data.error || 'OAuth was canceled or failed. You can retry the connection.');
+      fetchConnections().catch(() => undefined);
+    }
+
+    window.addEventListener('message', onOAuthMessage);
+    return () => window.removeEventListener('message', onOAuthMessage);
+  }, [clearOAuthPoll, fetchConnections]);
+
+  // After OAuth redirects back to the console, register the MCP server so the agent
+  // gets a callable tool. In a popup, notify the opener and close; in same-tab fallback,
+  // keep the UI recoverable and remove callback params from browser history.
   useEffect(() => {
     const connectedAccountId = searchParams.get('connected_account_id');
-    if (!connectedAccountId || registeredRef.current === connectedAccountId) return;
-    registeredRef.current = connectedAccountId;
-    // We need the toolkit slug — fetch connections to find the one that was just connected.
-    fetchConnections().then((conns) => {
-      const conn = conns.find((c) => c.id === connectedAccountId);
-      if (!conn) return;
-      apiFetch('/api/chat/integrations/register-mcp', {
-        method: 'POST',
-        body: JSON.stringify({ toolkit: conn.toolkit.slug }),
-      }).catch((e: Error) => setError(`MCP registration failed: ${e.message}`));
-    });
-  }, [searchParams, fetchConnections]);
+    const oauthError = oauthErrorFromParams(searchParams);
+    const isPopupReturn = Boolean(window.opener && window.opener !== window);
+
+    if (oauthError) {
+      const message = `OAuth failed or was canceled: ${oauthError}`;
+      setError(message);
+      if (isPopupReturn) {
+        window.opener.postMessage({ type: 'composio-oauth', status: 'error', error: message } satisfies OAuthPopupMessage, window.location.origin);
+        setTimeout(() => window.close(), 250);
+      }
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
+    }
+
+    if (!connectedAccountId) return;
+
+    completeOAuthConnection(connectedAccountId, isPopupReturn)
+      .then(() => {
+        setError(null);
+        window.history.replaceState(null, '', window.location.pathname);
+        if (isPopupReturn) setTimeout(() => window.close(), 250);
+      })
+      .catch((e: Error) => {
+        const message = `MCP registration failed: ${e.message}`;
+        setError(message);
+        if (isPopupReturn && window.opener) {
+          window.opener.postMessage({ type: 'composio-oauth', status: 'error', error: message } satisfies OAuthPopupMessage, window.location.origin);
+        }
+      });
+  }, [searchParams, completeOAuthConnection]);
 
   const fetchPage = useCallback((query: string, sort: SortBy, pageCursor: string | null, seq: number) => {
     const qs = new URLSearchParams();
@@ -149,13 +263,46 @@ export function ComposioApps() {
   const handleConnect = async (slug: string) => {
     setConnecting(slug);
     setError(null);
+
+    const popup = window.open('', `composio-oauth-${slug}`, OAUTH_POPUP_FEATURES);
+    if (popup) {
+      popup.document.write('<!doctype html><title>Connecting…</title><p style="font-family: sans-serif">Opening secure OAuth sign-in…</p>');
+      oauthPopupRef.current = popup;
+    }
+
     try {
       const { redirectUrl } = await apiFetch<{ redirectUrl: string }>('/api/chat/integrations/connect', {
         method: 'POST',
         body: JSON.stringify({ toolkit: slug }),
       });
-      window.location.href = redirectUrl;
+
+      if (!popup) {
+        setError('Popup was blocked. Allow popups for this site, then retry the connection.');
+        setConnecting(null);
+        return;
+      }
+
+      popup.location.href = redirectUrl;
+      clearOAuthPoll();
+      oauthPollRef.current = setInterval(() => {
+        if (!popup.closed) return;
+        clearOAuthPoll();
+        oauthPopupRef.current = null;
+        setConnecting(null);
+        fetchConnections()
+          .then((conns) => {
+            const connected = conns.some((conn) => conn.toolkit.slug === slug && isActive(conn));
+            if (connected) {
+              setTab('connected');
+              setError(null);
+            } else {
+              setError('OAuth window closed before the connection completed. You can retry the connection.');
+            }
+          })
+          .catch((e: Error) => setError(e.message));
+      }, 1000);
     } catch (e) {
+      popup?.close();
       setError((e as Error).message);
       setConnecting(null);
     }

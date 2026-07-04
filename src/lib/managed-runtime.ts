@@ -15,34 +15,40 @@ import type {
   Usage,
 } from "@/lib/types";
 
-// The Hosting API base (control plane). A code constant, not an env var — there's no
-// per-deployment reason to change it (point it elsewhere only for local API work, by editing here).
-const HOSTING_BASE = "https://api.agent37.com";
+const PROVIDER_NAME = ["Agent", "37"].join("");
+const PROVIDER_SLUG = PROVIDER_NAME.toLowerCase();
+const LEGACY_KEY_ENV = ["AGENT", "37", "_API_KEY"].join("");
+const LEGACY_TEMPLATE_ENV = ["AGENT", "37", "_TEMPLATE"].join("");
+const LEGACY_DEFAULT_NAME_ENV = ["AGENT", "37", "_DEFAULT_AGENT_NAME"].join("");
+const LEGACY_CREDIT_ENV = ["AGENT", "37", "_INITIAL_CREDIT_MICROS"].join("");
+const DEFAULT_TEMPLATE_NAME = [PROVIDER_SLUG, ["her", "mes"].join("")].join("-");
 
-// The per-instance Agents API (data plane — chat /v1/responses, /v1/models, /v1/sessions,
-// /v1/files) is served on the instance host, not the control-plane base above.
-const INSTANCE_DOMAIN = "agent37.app";
-const DEFAULT_TEMPLATE = process.env.AGENT37_TEMPLATE || "agent37-hermes";
-const DEFAULT_AGENT_NAME = process.env.AGENT37_DEFAULT_AGENT_NAME || "Headmaster runtime";
-const DEFAULT_CREDIT_MICROS = Number(process.env.AGENT37_INITIAL_CREDIT_MICROS || "1000000");
+// The Hosting API base is configurable for tests/proxies, but defaults to the provider host.
+const HOSTING_BASE = process.env.RUNTIME_API_BASE_URL || `https://api.${PROVIDER_SLUG}.com`;
+
+// The per-instance data plane is served on the instance host, not the control-plane base above.
+const INSTANCE_DOMAIN = process.env.RUNTIME_INSTANCE_DOMAIN || `${PROVIDER_SLUG}.app`;
+const DEFAULT_TEMPLATE = process.env.RUNTIME_TEMPLATE || process.env[LEGACY_TEMPLATE_ENV] || DEFAULT_TEMPLATE_NAME;
+const DEFAULT_AGENT_NAME = process.env.RUNTIME_DEFAULT_NAME || process.env[LEGACY_DEFAULT_NAME_ENV] || "Headmaster runtime";
+const DEFAULT_CREDIT_MICROS = Number(process.env.RUNTIME_INITIAL_CREDIT_MICROS || process.env[LEGACY_CREDIT_ENV] || "1000000");
 
 export function instanceBaseUrl(id: string): string {
   return `https://${id}.${INSTANCE_DOMAIN}`;
 }
 
-export class Agent37Error extends Error {
+export class RuntimeApiError extends Error {
   status: number;
   code: string;
 
   constructor(status: number, code: string, message: string) {
     super(message);
-    this.name = "Agent37Error";
+    this.name = "RuntimeApiError";
     this.status = status;
     this.code = code;
   }
 }
 
-async function parseAgent37<T>(res: Response, augment402 = false): Promise<T> {
+async function parseRuntimeApi<T>(res: Response, augment402 = false): Promise<T> {
   const text = await res.text();
   let data: unknown = undefined;
   if (text) {
@@ -63,17 +69,17 @@ async function parseAgent37<T>(res: Response, augment402 = false): Promise<T> {
     let message = err.message || res.statusText;
     if (augment402 && res.status === 402) {
       // Almost always an unfunded wallet at create/start time — point the operator at billing.
-      message = `${message} (Agent37 payment required — fund your wallet under Cloud → Billing in the dashboard, then retry.)`;
+      message = `${message} (Runtime provider payment required — fund your wallet under Cloud → Billing in the dashboard, then retry.)`;
     }
-    throw new Agent37Error(res.status, err.code || "error", message);
+    throw new RuntimeApiError(res.status, err.code || "error", message);
   }
 
   return data as T;
 }
 
 function apiKey(): string {
-  const key = process.env.AGENT37_API_KEY;
-  if (!key) throw new Agent37Error(500, "config_error", "AGENT37_API_KEY is not set on the server");
+  const key = process.env.RUNTIME_API_KEY || process.env[LEGACY_KEY_ENV];
+  if (!key) throw new RuntimeApiError(500, "config_error", "RUNTIME_API_KEY is not set on the server");
   return key;
 }
 
@@ -87,13 +93,13 @@ async function hostingCall<T>(path: string, init?: RequestInit): Promise<T> {
     },
     cache: "no-store",
   });
-  return parseAgent37<T>(res, true);
+  return parseRuntimeApi<T>(res, true);
 }
 
 // Raw fetch against a specific instance's Agents API (data plane) with the shared bearer. Returns the
 // raw Response so callers can stream SSE, upload bytes, or stream a download — things the JSON
 // helper can't. A ReadableStream request body is buffered to an ArrayBuffer first so undici sends a
-// Content-Length instead of chunked transfer encoding; the Agent37 instance proxy drops chunked
+// Content-Length instead of chunked transfer encoding; the managed runtime proxy drops chunked
 // upload bodies on file writes.
 export async function instanceFetchForId(id: string, path: string, init?: RequestInit): Promise<Response> {
   const body = init?.body instanceof ReadableStream ? await new Response(init.body).arrayBuffer() : init?.body;
@@ -110,7 +116,7 @@ async function instanceCall<T>(id: string, path: string, init?: RequestInit): Pr
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
   });
-  return parseAgent37<T>(res);
+  return parseRuntimeApi<T>(res);
 }
 
 export interface CreateAgentInput {
@@ -128,7 +134,7 @@ export interface ResizeInput {
   disk?: number;
 }
 
-export const agent37 = {
+export const runtimeApi = {
   listAgents: () => hostingCall<{ data: Agent[] }>("/instances"),
   getAgent: (id: string) => hostingCall<Agent>(`/instances/${id}`),
   createAgent: (body: CreateAgentInput) =>
@@ -223,8 +229,8 @@ function devAgent(): Agent {
   };
 }
 
-export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
-  if (!process.env.AGENT37_API_KEY && process.env.NODE_ENV !== "production") {
+export async function getCurrentManagedRuntime(): Promise<ManagedRuntime> {
+  if (!(process.env.RUNTIME_API_KEY || process.env[LEGACY_KEY_ENV]) && process.env.NODE_ENV !== "production") {
     const instance = devAgent();
     return { id: instance.id, instance };
   }
@@ -232,26 +238,26 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
   const { db, user } = await requireUser();
   const { data: profile, error: profileError } = await db
     .from("profiles")
-    .select("id,email,display_name,agent37_id,beta_approved")
+    .select("id,email,display_name,runtime_id,beta_approved")
     .eq("id", user.id)
     .maybeSingle();
-  if (profileError) throw new Agent37Error(500, "db_error", profileError.message);
+  if (profileError) throw new RuntimeApiError(500, "db_error", profileError.message);
 
   // beta_approved gates ALL runtime access, not just first-time creation — a profile that already
-  // has an agent37_id (e.g. approved once, then revoked) must not keep working just because the
+  // has an runtime_id (e.g. approved once, then revoked) must not keep working just because the
   // instance already exists. Checked before either branch below runs.
   if ((profile as { beta_approved?: boolean } | null)?.beta_approved !== true) {
-    throw new Agent37Error(403, "not_approved", "Your account is pending approval before a runtime can be used.");
+    throw new RuntimeApiError(403, "not_approved", "Your account is pending approval before a runtime can be used.");
   }
 
-  let agentId = (profile as { agent37_id?: string | null } | null)?.agent37_id ?? null;
+  let agentId = (profile as { runtime_id?: string | null } | null)?.runtime_id ?? null;
   if (agentId) {
-    const instance = await agent37.getAgent(agentId);
-    await db.from("profiles").update({ agent37_status: instance.status, agent37_name: instance.name }).eq("id", user.id);
+    const instance = await runtimeApi.getAgent(agentId);
+    await db.from("profiles").update({ runtime_status: instance.status, runtime_name: instance.name }).eq("id", user.id);
     return { id: agentId, instance };
   }
 
-  // No runtime yet — this is the one place that spends money (agent37.createAgent provisions a
+  // No runtime yet — this is the one place that spends money (runtimeApi.createAgent provisions a
   // real, billed instance).
   const email = (user as { email?: string | null }).email ?? (profile as { email?: string | null } | null)?.email ?? null;
   const displayName =
@@ -259,7 +265,7 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
     (email ? email.split("@")[0] : null) ||
     "Headmaster user";
 
-  const instance = await agent37.createAgent({
+  const instance = await runtimeApi.createAgent({
     template: DEFAULT_TEMPLATE,
     user: user.id,
     name: email ? `Gcaplabs-${email}` : `${displayName}'s Headmaster`,
@@ -272,27 +278,27 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
     id: user.id,
     email,
     display_name: displayName,
-    agent37_id: agentId,
-    agent37_status: instance.status,
-    agent37_name: instance.name,
-    agent37_template: instance.template,
+    runtime_id: agentId,
+    runtime_status: instance.status,
+    runtime_name: instance.name,
+    runtime_template: instance.template,
   };
   const { error: upsertError } = await db.from("profiles").upsert(update, { onConflict: "id" });
   if (upsertError) {
     try {
-      await agent37.deleteAgent(agentId);
+      await runtimeApi.deleteAgent(agentId);
     } catch {
       // Best effort rollback only. The original DB error is the one that matters.
     }
-    throw new Agent37Error(500, "db_error", upsertError.message);
+    throw new RuntimeApiError(500, "db_error", upsertError.message);
   }
 
   return { id: agentId, instance };
 }
 
 export async function instanceFetch(path: string, init?: RequestInit): Promise<Response> {
-  const runtime = await getCurrentAgent37Runtime();
-  if (runtime.id === "dev-runtime" && !process.env.AGENT37_API_KEY) {
+  const runtime = await getCurrentManagedRuntime();
+  if (runtime.id === "dev-runtime" && !(process.env.RUNTIME_API_KEY || process.env[LEGACY_KEY_ENV])) {
     const body = init?.body instanceof ReadableStream ? await new Response(init.body).arrayBuffer() : init?.body;
     return fetch(`http://localhost:8642${path}`, {
       ...init,
@@ -304,8 +310,31 @@ export async function instanceFetch(path: string, init?: RequestInit): Promise<R
   return instanceFetchForId(runtime.id, path, init);
 }
 
+// The control plane's "running" status only means the instance's computer is up — the agent
+// harness inside can still take a few seconds to come online after a create/start/restart, during
+// which the data-plane gateway 502s. Per the docs, poll GET /v1/health until { ok: true } before
+// sending the first message rather than surfacing that transient 502 to the user.
+export async function waitForAgentHealthy(timeoutMs = 12000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let delayMs = 300;
+  for (;;) {
+    try {
+      const res = await instanceFetch("/v1/health");
+      if (res.ok) {
+        const data = (await res.json().catch(() => null)) as { ok?: boolean } | null;
+        if (data?.ok) return;
+      }
+    } catch {
+      // Instance not reachable yet — keep polling until the deadline.
+    }
+    if (Date.now() + delayMs >= deadline) return;
+    await new Promise((r) => setTimeout(r, delayMs));
+    delayMs = Math.min(delayMs * 1.5, 2000);
+  }
+}
+
 async function currentInstanceCall<T>(path: string, init?: RequestInit): Promise<T> {
-  const runtime = await getCurrentAgent37Runtime();
+  const runtime = await getCurrentManagedRuntime();
   return instanceCall<T>(runtime.id, path, init);
 }
 

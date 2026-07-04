@@ -1,4 +1,4 @@
-import { agent37, getCurrentAgent37Runtime } from "@/lib/agent37";
+import { runtimeApi, getCurrentManagedRuntime } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
 
@@ -15,11 +15,11 @@ export async function POST(request: Request) {
       throw new ApiError(400, "invalid_request", "ttl_seconds must be a positive integer");
     }
 
-    const runtime = await getCurrentAgent37Runtime();
+    const runtime = await getCurrentManagedRuntime();
     if (!runtime.instance.ports?.some((p) => p.port === port)) {
       throw new ApiError(404, "not_found", "That port is not exposed by the managed runtime");
     }
-    return json(await agent37.signedUrl(runtime.id, port, ttlSeconds));
+    return json(await runtimeApi.signedUrl(runtime.id, port, ttlSeconds));
   } catch (e) {
     return handleError(e);
   }

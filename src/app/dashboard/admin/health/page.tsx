@@ -22,7 +22,7 @@ export default async function HealthPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <PingTile label="Supabase" result={snapshot.supabase} />
-        <PingTile label="Agent37 control plane" result={snapshot.agent37} />
+        <PingTile label="Runtime control plane" result={snapshot.runtimeApi} />
       </div>
 
       <div>

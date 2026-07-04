@@ -54,7 +54,7 @@ export function OrgMembersTable({ initialMembers }: { initialMembers: AdminProfi
               <span>
                 <Badge variant={member.beta_approved ? "success" : "warning"}>{member.beta_approved ? "Approved" : "Pending"}</Badge>
               </span>
-              <span className="truncate text-xs text-muted-foreground">{member.agent37_id ? (member.agent37_status ?? "provisioned") : "none yet"}</span>
+              <span className="truncate text-xs text-muted-foreground">{member.runtime_id ? (member.runtime_status ?? "provisioned") : "none yet"}</span>
               <span>
                 <Button
                   size="sm"

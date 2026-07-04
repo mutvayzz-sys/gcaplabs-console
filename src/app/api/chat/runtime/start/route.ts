@@ -1,14 +1,14 @@
 // POST /api/chat/runtime/start — start the headmaster-runtime singleton.
 
-import { agent37, getCurrentAgent37Runtime } from "@/lib/agent37";
+import { runtimeApi, getCurrentManagedRuntime } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/http";
 
 export async function POST() {
   try {
     await requireUser();
-    const runtime = await getCurrentAgent37Runtime();
-    return json(await agent37.start(runtime.id));
+    const runtime = await getCurrentManagedRuntime();
+    return json(await runtimeApi.start(runtime.id));
   } catch (e) {
     return handleError(e);
   }

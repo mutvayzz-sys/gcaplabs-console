@@ -82,8 +82,8 @@ export async function requireAdmin(db: DB, workspaceId: string, userId: string):
   if (role !== "admin") throw new ApiError(403, "forbidden", "Admin role required");
 }
 
-export async function getAgentRow(db: DB, agent37Id: string): Promise<AgentRow> {
-  const { data } = await db.from("agents").select("*").eq("agent37_id", agent37Id).maybeSingle();
+export async function getAgentRow(db: DB, runtimeId: string): Promise<AgentRow> {
+  const { data } = await db.from("agents").select("*").eq("runtime_id", runtimeId).maybeSingle();
   if (!data) throw new ApiError(404, "not_found", "Agent not found");
   return data as AgentRow;
 }
@@ -92,9 +92,9 @@ export async function getAgentRow(db: DB, agent37Id: string): Promise<AgentRow> 
 // resolve the agent's mirror row, then gate on the workspace role — "member" for reads, "admin"
 // for mutations. Returns the privileged client, user, and row so the handler can get on with its
 // work (and run its DB writes through `db`).
-export async function requireAgentAccess(agent37Id: string, access: "member" | "admin" = "member") {
+export async function requireAgentAccess(runtimeId: string, access: "member" | "admin" = "member") {
   const { db, user } = await requireUser();
-  const row = await getAgentRow(db, agent37Id);
+  const row = await getAgentRow(db, runtimeId);
   if (access === "admin") await requireAdmin(db, row.workspace_id, user.id);
   else await requireMember(db, row.workspace_id, user.id);
   return { db, user, row };
@@ -102,7 +102,7 @@ export async function requireAgentAccess(agent37Id: string, access: "member" | "
 
 // Gates the console's own admin surfaces (Agents list, Members, Settings) — distinct from
 // per-agent capabilities, and distinct from `beta_approved` (which only gates whether a
-// signup gets its own Agent37 runtime). Source of truth is `profiles.is_admin`. Mirrors
+// signup gets its own managed runtime). Source of truth is `profiles.is_admin`. Mirrors
 // getSession()'s dev-mode shortcut so local dev without Supabase configured isn't locked out.
 export const isConsoleAdmin = cache(async function isConsoleAdmin(userId: string): Promise<boolean> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -112,18 +112,6 @@ export const isConsoleAdmin = cache(async function isConsoleAdmin(userId: string
   const { data, error } = await db.from("profiles").select("is_admin").eq("id", userId).maybeSingle();
   if (error) throw new ApiError(500, "db_error", error.message);
   return data?.is_admin === true;
-});
-
-// Whether the user is an org admin for their own organization — used by DashboardShell to decide
-// whether to show the "Org" nav item. Distinct from isConsoleAdmin (site-wide).
-export const isOrgAdmin = cache(async function isOrgAdmin(userId: string): Promise<boolean> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return false;
-  }
-  const db = createAdminClient();
-  const { data, error } = await db.from("profiles").select("organization_id,org_role").eq("id", userId).maybeSingle();
-  if (error) throw new ApiError(500, "db_error", error.message);
-  return Boolean(data?.organization_id) && data?.org_role === "admin";
 });
 
 // Call at the top of a server component/page that should only render for console admins.

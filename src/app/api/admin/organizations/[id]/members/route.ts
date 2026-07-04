@@ -2,7 +2,7 @@ import { requireConsoleAdmin } from "@/lib/auth";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
 import type { AdminProfileRow } from "@/app/api/admin/users/route";
 
-const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,org_role,agent37_id,agent37_status,created_at";
+const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,org_role,runtime_id,runtime_status,created_at";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

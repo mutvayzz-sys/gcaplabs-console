@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-// Minimal example LLM proxy for an Agent37 custom image.
+// Minimal example LLM proxy for an Runtime Provider custom image.
 //
-// It's an OpenAI-compatible pass-through: a Hermes instance talks to it as a
+// It's an OpenAI-compatible pass-through: a runtime instance talks to it as a
 // "custom provider" (api_mode: chat_completions), and it forwards to OpenRouter
-// using YOUR key. This is the stripped-down cousin of Agent37's managed
+// using YOUR key. This is the stripped-down cousin of Runtime Provider's managed
 // starter-proxy — no billing, no accounting, no quotas. Read it, deploy it, point
 // an instance at it.
 //
-// OPTIONAL: by default, Agent37 instances run on Agent37's managed model and need
+// OPTIONAL: by default, managed runtimes run on Runtime Provider's managed model and need
 // none of this. Deploy this only if you want an instance to run on your own model.
 //
-// Two routes Hermes needs:
+// Two routes the runtime needs:
 //   GET  /v1/models            -> the model id(s) it can pick (no auth)
 //   POST /v1/chat/completions  -> the chat turn (Bearer = PROXY_TOKEN), forwarded upstream
 //
@@ -22,8 +22,8 @@ const PORT = process.env.PORT || 8787;
 // Your OpenRouter key — server-side only, never commit it. https://openrouter.ai/keys
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// The token Hermes presents as `api_key`. Pick any value; put the SAME one in the
-// instance's ~/.hermes/config.yaml custom_providers[].api_key.
+// The token the runtime presents as `api_key`. Pick any value; put the SAME one in the
+// instance's ~/.runtime/config.yaml custom_providers[].api_key.
 const PROXY_TOKEN = process.env.PROXY_TOKEN;
 
 // Which OpenRouter model to serve. Swap for any model OpenRouter offers.
@@ -44,7 +44,7 @@ function json(res, status, body) {
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
 
-  // GET /v1/models — Hermes reads this to learn which model id to use.
+  // GET /v1/models — the runtime reads this to learn which model id to use.
   if (req.method === 'GET' && path === '/v1/models') {
     return json(res, 200, {
       object: 'list',

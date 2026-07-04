@@ -214,7 +214,7 @@ export function RuntimeControlPanel({ userId, onDeleted }: { userId: string; onD
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title="Delete this runtime?"
-        description="This permanently deletes the Agent37 instance and all its data. The user can get a new one only if re-approved."
+        description="This permanently deletes the managed runtime and all its data. The user can get a new one only if re-approved."
         confirmText="Delete"
         destructive
         onConfirm={() => runAction("delete")}

@@ -44,7 +44,7 @@ export function UserDetail({ initialUser }: { initialUser: AdminProfileRow }) {
         </Row>
         <Row label="Console admin">{user.is_admin ? <Badge variant="success">Admin</Badge> : <span className="text-muted-foreground">No</span>}</Row>
         <Row label="Display name">{user.display_name ?? <span className="text-muted-foreground">—</span>}</Row>
-        <Row label="Runtime">{user.agent37_id ? (user.agent37_status ?? "provisioned") : <span className="text-muted-foreground">none yet</span>}</Row>
+        <Row label="Runtime">{user.runtime_id ? (user.runtime_status ?? "provisioned") : <span className="text-muted-foreground">none yet</span>}</Row>
         <Row label="Created" last>
           {new Date(user.created_at).toLocaleString()}
         </Row>
@@ -63,10 +63,10 @@ export function UserDetail({ initialUser }: { initialUser: AdminProfileRow }) {
         </Button>
       </div>
 
-      {user.agent37_id ? (
+      {user.runtime_id ? (
         <RuntimeControlPanel
           userId={user.id}
-          onDeleted={() => setUser((prev) => ({ ...prev, agent37_id: null, agent37_status: null }))}
+          onDeleted={() => setUser((prev) => ({ ...prev, runtime_id: null, runtime_status: null }))}
         />
       ) : null}
     </div>

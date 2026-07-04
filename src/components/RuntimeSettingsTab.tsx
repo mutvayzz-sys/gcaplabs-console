@@ -24,11 +24,11 @@ import type { MergedAgent } from '@/lib/types';
 // upstream starter-kit's AgentSettingsTab to the singleton model:
 //   - no agentId prop; all BFF calls hit /api/chat/runtime/*
 //   - no Delete action (singleton is not deletable from the UI; it auto-recreates
-//     on next dashboard visit if the underlying Agent37 instance is gone)
+//     on next dashboard visit if the underlying managed runtime is gone)
 //
 // Sections in render order: header (name + lifecycle + status), Update banner
 // (when applicable), Shape picker, Budget, Info rows. Opening the runtime's own
-// signed-port apps (Hermes dashboard/terminal/files) is admin-only now — see
+// signed-port apps (runtime dashboard/terminal/files) is admin-only now — see
 // RuntimeControlPanel.tsx under the admin User Detail page — never exposed here.
 export function RuntimeSettingsTab({
   agent,
@@ -97,8 +97,8 @@ export function RuntimeSettingsTab({
           )}
           {agent.template && <Badge variant='outline'>{agent.template}</Badge>}
           {agent.past_due && <Badge variant='warning'>past due</Badge>}
-          <span className='truncate font-mono text-xs text-muted-foreground' title={agent.agent37_id}>
-            {agent.agent37_id}
+          <span className='truncate font-mono text-xs text-muted-foreground' title={agent.runtime_id}>
+            {agent.runtime_id}
           </span>
         </div>
 
@@ -229,10 +229,10 @@ function ShapeSection({ agent, onChanged }: { agent: MergedAgent; onChanged?: ()
 function InfoSection({ agent }: { agent: MergedAgent }) {
   return (
     <section className='overflow-hidden rounded-lg border text-sm'>
-      <InfoRow label='Runtime ID' value={agent.agent37_id} mono />
+      <InfoRow label='Runtime ID' value={agent.runtime_id} mono />
       <InfoRow label='Name' value={agent.name || 'Headmaster runtime'} />
       <InfoRow label='Status' value={agent.live_status || 'unknown'} />
-      <InfoRow label='Template' value={agent.template || 'agent37-hermes'} />
+      <InfoRow label='Template' value={agent.template || 'default-runtime'} />
       <InfoRow label='Shape' value={shapeLabel(agent.cpu, agent.memory) || 'custom'} />
       <InfoRow
         label='Resources'

@@ -38,7 +38,7 @@ export interface ModelGroup {
 }
 
 // Case-insensitive provider equality. The gateway reports default_provider with different casing
-// than the per-model provider (e.g. "custom:Agent37" vs "custom:agent37"), so matching a model to
+// than the per-model provider (e.g. "custom:Runtime Provider" vs "custom:runtime"), so matching a model to
 // the default — or to the (model, provider) selection — must compare loosely.
 export function sameProvider(a: string | null | undefined, b: string | null | undefined): boolean {
   return !!a && !!b && a.toLowerCase() === b.toLowerCase();
@@ -61,7 +61,7 @@ export function findModel(
 }
 
 // Human-friendly provider names for the model menu's section headers. The metered gateway
-// reports `custom:agent37`; BYO / multi-model agents report bare slugs like `anthropic` / `openai`.
+// reports `custom:runtime`; BYO / multi-model agents report bare slugs like `anthropic` / `openai`.
 const PROVIDER_LABELS: Record<string, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
@@ -80,7 +80,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 // Pretty section label for a provider id: drop any `custom:` prefix and title-case the rest
-// (so `custom:agent37` -> "Agent37"); known providers keep their canonical casing (OpenAI, xAI…).
+// (so `custom:runtime` -> "Runtime Provider"); known providers keep their canonical casing (OpenAI, xAI…).
 export function prettyProvider(provider: string): string {
   const key = provider.replace(/^custom:/i, "").toLowerCase();
   if (PROVIDER_LABELS[key]) return PROVIDER_LABELS[key];
@@ -98,7 +98,7 @@ export function prettyModelLabel(label: string): string {
   return label.toLowerCase() === "default" ? "Default" : label;
 }
 
-// Agent37's reasoning_effort enum (POST /v1/responses). null => use the agent's default.
+// Runtime Provider's reasoning_effort enum (POST /v1/responses). null => use the agent's default.
 export const REASONING_EFFORTS = ["none", "minimal", "low", "medium", "high", "xhigh"] as const;
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
 
@@ -125,7 +125,7 @@ export function uid(prefix = "c"): string {
   return `${prefix}${Date.now().toString(36)}${counter.toString(36)}`;
 }
 
-// One conversation in the Chat tab's thread rail. The Agent37 Agents API (GET /v1/sessions) is
+// One conversation in the Chat tab's thread rail. The runtime data-plane API (GET /v1/sessions) is
 // the source of truth for the list + ordering; the sessions route resolves `title` as the
 // server-side title (when set, e.g. via rename) or the session's first-message preview.
 export interface ChatSession {

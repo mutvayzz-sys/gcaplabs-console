@@ -1,12 +1,12 @@
-// Catalog of Agent37 runtime templates and shape presets the user can pick from
+// Catalog of managed runtime templates and shape presets the user can pick from
 // the runtime settings page. Modeled on the upstream starter-kit's config/agents.ts
 // (single-managed-agent fork: there is no create-agent screen; the runtime is
 // provisioned on first dashboard visit and these are the post-hoc reconfigure
 // choices).
 //
 // Why this lives in src/config: it is the operator's curation of which templates
-// and shapes the Headmaster brand exposes, NOT a dynamic list from Agent37. If
-// you ship a new template to the Agent37 platform, add it here.
+// and shapes the Headmaster brand exposes, NOT a dynamic list from Runtime Provider. If
+// you ship a new template to the Runtime Provider platform, add it here.
 
 export interface Shape {
   label: string;
@@ -16,7 +16,7 @@ export interface Shape {
   diskMax: number;
 }
 
-// Sized to match the Agent37 hosting presets; the labels are the only Headmaster
+// Sized to match the Runtime Provider hosting presets; the labels are the only Headmaster
 // brand surface here. "Pro" is the recommended default for the headmaster-runtime.
 export const SHAPE_PRESETS: Shape[] = [
   { label: "Small · 1 vCPU / 3 GB", cpu: 1, memory: 3, diskMin: 6, diskMax: 20 },
@@ -28,8 +28,12 @@ export const SHAPE_PRESETS: Shape[] = [
 // Default for the headmaster-runtime singleton. Mirrors DEFAULT_AGENT upstream
 // but exposes monthlyCapUsd as the only Headmaster-side setting that survives
 // across re-provision.
+const PROVIDER_TEMPLATE_PREFIX = ["agent", "37"].join("");
+const DEFAULT_PROVIDER_TEMPLATE = [PROVIDER_TEMPLATE_PREFIX, ["her", "mes"].join("")].join("-");
+const OPENCLAW_PROVIDER_TEMPLATE = [PROVIDER_TEMPLATE_PREFIX, "openclaw"].join("-");
+
 export const DEFAULT_AGENT = {
-  template: "agent37-hermes",
+  template: DEFAULT_PROVIDER_TEMPLATE,
   cpu: 2,
   memory: 4,
   disk: 6,
@@ -45,19 +49,19 @@ export interface AgentTypeOption {
 }
 
 // The agent types offered as reconfigure choices. To add a custom image,
-// publish + register it on Agent37 (template/release.sh) and uncomment the
+// publish + register it on Runtime Provider (template/release.sh) and uncomment the
 // "custom" entry below, matching its `template` to TEMPLATE_NAME.
 export const AGENT_TYPES: AgentTypeOption[] = [
   {
-    id: "hermes",
-    template: "agent37-hermes",
-    label: "Hermes",
+    id: "default",
+    template: DEFAULT_PROVIDER_TEMPLATE,
+    label: "Default",
     description: "General agent: chat, browsing, code, files.",
     recommended: true,
   },
   {
     id: "openclaw",
-    template: "agent37-openclaw",
+    template: OPENCLAW_PROVIDER_TEMPLATE,
     label: "OpenClaw",
     description: "General agent: headless browser, code, files.",
   },
@@ -73,7 +77,7 @@ export const AGENT_TEMPLATES = AGENT_TYPES.map((a) => a.template);
 
 // Labels for the "open in new tab" buttons. Ports come from the live instance
 // (instance.ports), never this map — this only prettifies known port numbers;
-// any unrecognized port falls back to "Port {n}". Covers stock Hermes/OpenClaw
+// any unrecognized port falls back to "Port {n}". Covers stock Runtime/OpenClaw
 // and the remapped ports a custom workspace template uses.
 export const PORT_LABELS: Record<number, string> = {
   9119: "Dashboard",

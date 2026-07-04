@@ -1,11 +1,11 @@
 -- Headmaster Console — Supabase init migration
 --
--- In the Headmaster beta model, each user has ONE managed Agent37 Cloud
+-- In the Headmaster beta model, each user has ONE managed Managed runtime cloud
 -- instance. The fleet/workspace/membership/agents tables from the original
 -- starter-kit are kept but commented out — we may need them when we add
 -- multi-agent or team features later.
 --
--- Supabase Auth manages user identity; Agent37 Cloud manages the runtime.
+-- Supabase Auth manages user identity; Managed runtime cloud manages the runtime.
 -- All table access is server-side (service-role key); direct client
 -- table access is revoked.
 
@@ -70,7 +70,7 @@ grant all on public.profiles to service_role;
 -- );
 --
 -- create table if not exists public.agents (
---   agent37_id   text primary key,
+--   runtime_id   text primary key,
 --   workspace_id uuid not null references public.workspaces (id) on delete cascade,
 --   name         text,
 --   status       text,

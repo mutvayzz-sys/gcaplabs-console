@@ -7,12 +7,12 @@ export interface AdminProfileRow {
   display_name: string | null;
   beta_approved: boolean;
   is_admin: boolean;
-  agent37_id: string | null;
-  agent37_status: string | null;
+  runtime_id: string | null;
+  runtime_status: string | null;
   created_at: string;
 }
 
-const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,agent37_id,agent37_status,created_at";
+const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,runtime_id,runtime_status,created_at";
 const DEFAULT_PAGE_SIZE = 20;
 
 export async function GET(request: Request) {

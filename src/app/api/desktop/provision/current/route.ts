@@ -1,4 +1,4 @@
-import { getCurrentAgent37Runtime } from "@/lib/agent37";
+import { getCurrentManagedRuntime } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/http";
 
@@ -11,12 +11,12 @@ function bearerFrom(request: Request): string | null {
 export async function GET(request: Request) {
   try {
     const { user } = await requireUser();
-    const runtime = await getCurrentAgent37Runtime();
+    const runtime = await getCurrentManagedRuntime();
     const origin = new URL(request.url).origin;
     const bearer = bearerFrom(request);
     return json({
       mode: "headmaster_remote",
-      backend: "agent37",
+      backend: "managed-runtime",
       user: { id: user.id, username: user.email ?? user.id, role: "user" },
       capabilities: ["chat", "files", "integrations", "model_selection"],
       runtime: {

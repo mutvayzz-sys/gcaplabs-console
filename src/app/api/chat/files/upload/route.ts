@@ -1,4 +1,4 @@
-import { instanceFetch } from "@/lib/agent37";
+import { instanceFetch } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { handleError } from "@/lib/http";
 

@@ -48,7 +48,7 @@ export function useChatContext() {
 }
 
 // Holds the thread rail + the active selection, shared by the sidebar rail and the conversation
-// pane. The rail comes straight from the Agent37 Agents API (GET /v1/sessions) — there is no local
+// pane. The rail comes straight from the runtime data-plane API (GET /v1/sessions) — there is no local
 // sessions table. Each row's label (server-side title, else the first-message preview) is resolved
 // by the sessions route, so the rail paints in one fetch with no per-session hydration.
 export function ChatProvider({

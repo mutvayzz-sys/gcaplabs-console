@@ -6,7 +6,7 @@ import { apiFetch } from "@/lib/api";
 import { branding } from "@/config/branding";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "agent37wl_workspace";
+const STORAGE_KEY = "console_workspace";
 
 export function AcceptInvite({
   token,

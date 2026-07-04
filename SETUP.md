@@ -2,7 +2,7 @@
 
 This app runs on two secrets you supply (both behind a login, so a human must fetch them):
 
-- **`AGENT37_API_KEY`** (`sk_live_…`) — Agent37 dashboard → **Cloud → API keys**. Then
+- **`RUNTIME_API_KEY`** (`sk_live_…`) — provider dashboard → **Cloud → API keys**. Then
   **fund the wallet** (Cloud → Billing): creating an agent costs real money, and an empty
   wallet returns a `402` at create time.
 - **`SUPABASE_ACCESS_TOKEN`** (`sbp_…`) — [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) (~30s).
@@ -24,8 +24,8 @@ these steps in order; don't skip the checks.
    **expected**, not an error.
 2. **Ask me for the two secrets.** You can't fetch them (both are behind a login). Print where
    to get each, then stop and wait for my reply:
-   - `AGENT37_API_KEY` (starts with `sk_live_`): Agent37 dashboard → Cloud → API keys
-     (<https://www.agent37.com/dashboard/cloud/api-keys>). Creating agents also needs a
+   - `RUNTIME_API_KEY` (starts with `sk_live_`): provider dashboard → Cloud → API keys
+     (<https://docs.runtime-provider.example/dashboard/cloud/api-keys>). Creating agents also needs a
      **funded** wallet (Cloud → Billing), or it later fails with a `402`.
    - `SUPABASE_ACCESS_TOKEN` (starts with `sbp_`): <https://supabase.com/dashboard/account/tokens>.
 3. **Validate.** Confirm the prefixes (`sk_live_`, `sbp_`). If one's wrong, ask again — don't proceed.
@@ -79,7 +79,7 @@ backend or register your sign-in URLs. Run setup locally once first, then:
 
 1. Run `npm run setup` locally (creates Supabase + schema + auth config).
 2. Push your fork to GitHub, then in Vercel: **Add New → Project → Import Git Repository**.
-3. Add **only these** env vars: `AGENT37_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`,
+3. Add **only these** env vars: `RUNTIME_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only — the runtime needs
    it for all DB access), `NEXT_PUBLIC_SITE_URL` (your prod URL).
    **Never add** `SUPABASE_ACCESS_TOKEN` — it's setup-only (used to create/configure the project,

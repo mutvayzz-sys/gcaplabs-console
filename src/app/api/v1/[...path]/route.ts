@@ -1,4 +1,4 @@
-import { instanceFetch } from "@/lib/agent37";
+import { instanceFetch } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { handleError } from "@/lib/http";
 
@@ -16,7 +16,7 @@ async function proxy(request: Request, { params }: Ctx) {
     const headers = new Headers(request.headers);
     headers.delete("host");
     headers.delete("content-length");
-    // The upstream Agent37 key is added server-side by instanceFetch. Client Bearer
+    // The upstream Runtime Provider key is added server-side by instanceFetch. Client Bearer
     // tokens authenticate to this BFF only and never leave the console.
     headers.delete("authorization");
 

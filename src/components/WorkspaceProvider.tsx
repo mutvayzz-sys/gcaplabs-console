@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { WorkspaceWithRole } from "@/lib/types";
 import { apiFetch } from "@/lib/api";
 
-const STORAGE_KEY = "agent37wl_workspace";
+const STORAGE_KEY = "console_workspace";
 
 interface WorkspaceContextValue {
   workspaces: WorkspaceWithRole[];

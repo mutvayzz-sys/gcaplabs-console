@@ -1,4 +1,4 @@
-import { agent37, getCurrentAgent37Runtime } from '@/lib/agent37';
+import { runtimeApi, getCurrentManagedRuntime } from '@/lib/managed-runtime';
 import { requireUser } from '@/lib/auth';
 import { handleError, json } from '@/lib/http';
 
@@ -8,8 +8,8 @@ export async function DELETE(_request: Request, { params }: Ctx) {
   try {
     await requireUser();
     const { id } = await params;
-    const runtime = await getCurrentAgent37Runtime();
-    await agent37.disconnectIntegration(runtime.id, id);
+    const runtime = await getCurrentManagedRuntime();
+    await runtimeApi.disconnectIntegration(runtime.id, id);
     return json({ ok: true });
   } catch (e) {
     return handleError(e);

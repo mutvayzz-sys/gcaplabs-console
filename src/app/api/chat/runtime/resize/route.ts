@@ -5,7 +5,7 @@
 // in the settings tab sends full triples; admins wanting to bump just one
 // dimension can call directly with partial input.
 
-import { agent37, getCurrentAgent37Runtime } from "@/lib/agent37";
+import { runtimeApi, getCurrentManagedRuntime } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError, json, readJson } from "@/lib/http";
 
@@ -30,9 +30,9 @@ export async function POST(request: Request) {
       throw new ApiError(400, "invalid_request", "at least one of cpu/memory/disk is required");
     }
 
-    const runtime = await getCurrentAgent37Runtime();
+    const runtime = await getCurrentManagedRuntime();
     return json(
-      await agent37.resize(runtime.id, {
+      await runtimeApi.resize(runtime.id, {
         ...(cpu != null ? { cpu } : {}),
         ...(memory != null ? { memory } : {}),
         ...(disk != null ? { disk } : {}),

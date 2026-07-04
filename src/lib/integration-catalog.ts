@@ -23,7 +23,7 @@ function toolkit(
   };
 }
 
-// Static first-paint catalog for the Browse tab. Live Agent37/Composio search still runs for typed
+// Static first-paint catalog for the Browse tab. Live runtime provider/Composio search still runs for typed
 // queries (the full 1,000+ app catalog), but the default grid should not wait on a remote request.
 // Forkers can curate this list freely — it is purely the "popular apps" starting set.
 export const DEFAULT_INTEGRATION_TOOLKITS: IntegrationToolkit[] = [

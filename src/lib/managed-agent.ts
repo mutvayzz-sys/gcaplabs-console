@@ -1,10 +1,10 @@
 import "server-only";
-import { agent37, getCurrentAgent37Runtime } from "@/lib/agent37";
+import { runtimeApi, getCurrentManagedRuntime } from "@/lib/managed-runtime";
 import type { Agent, MergedAgent, Template } from "@/lib/types";
 
-// Stable UI alias for the user's single managed Agent37 instance. The actual
-// Agent37 instance id is kept server-side in profiles.agent37_id so the browser
-// never needs the shared AGENT37_API_KEY or any direct upstream access.
+// Stable UI alias for the user's single managed managed runtime. The actual
+// managed runtime id is kept server-side in profiles.runtime_id so the browser
+// never needs the shared RUNTIME_API_KEY or any direct upstream access.
 export const MANAGED_AGENT_ID = "headmaster-runtime";
 
 // Compare the running instance's image_ref against the latest published image_ref
@@ -21,8 +21,8 @@ function updateAvailableFor(instance: Agent, templates: Template[]): boolean {
 export function agentFromInstance(instance: Agent, updateAvailable: boolean): MergedAgent {
   const createdAt = instance.created ? new Date(instance.created * 1000).toISOString() : new Date().toISOString();
   return {
-    agent37_id: MANAGED_AGENT_ID,
-    workspace_id: "agent37",
+    runtime_id: MANAGED_AGENT_ID,
+    workspace_id: "managed-runtime",
     name: instance.name || "Headmaster runtime",
     status: instance.status,
     template: instance.template,
@@ -39,18 +39,18 @@ export function agentFromInstance(instance: Agent, updateAvailable: boolean): Me
   };
 }
 
-export async function getManagedAgent(): Promise<{ agent: MergedAgent; instance: Agent; agent37Id: string }> {
+export async function getManagedAgent(): Promise<{ agent: MergedAgent; instance: Agent; runtimeId: string }> {
   // Runs concurrently with the runtime lookup instead of after it — listTemplates() doesn't
   // depend on the instance, only the comparison below does. Falls back to [] on any
   // catalog/lookup error (templates endpoint can be 5xx, catalog might be empty, etc.) — the
   // runtime is still usable; we just don't nag about an update we can't confirm.
   const [runtime, templates] = await Promise.all([
-    getCurrentAgent37Runtime(),
-    agent37
+    getCurrentManagedRuntime(),
+    runtimeApi
       .listTemplates()
       .then(({ data }) => data)
       .catch(() => [] as Template[]),
   ]);
   const updateAvailable = updateAvailableFor(runtime.instance, templates);
-  return { agent: agentFromInstance(runtime.instance, updateAvailable), instance: runtime.instance, agent37Id: runtime.id };
+  return { agent: agentFromInstance(runtime.instance, updateAvailable), instance: runtime.instance, runtimeId: runtime.id };
 }

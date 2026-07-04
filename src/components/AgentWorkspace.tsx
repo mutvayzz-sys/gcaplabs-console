@@ -46,7 +46,7 @@ export function AgentWorkspace({
     if (nextSessionId) params.set('session', nextSessionId);
     else params.delete('session');
     const qs = params.toString();
-    const next = `${agentTabPath(currentAgent.agent37_id, 'chat')}${qs ? `?${qs}` : ''}`;
+    const next = `${agentTabPath(currentAgent.runtime_id, 'chat')}${qs ? `?${qs}` : ''}`;
     if (mode === 'replace') router.replace(next);
     else router.push(next);
   }
@@ -62,7 +62,7 @@ export function AgentWorkspace({
 
   return (
     <ChatProvider
-      agentId={currentAgent.agent37_id}
+      agentId={currentAgent.runtime_id}
       agents={[currentAgent]}
       urlSessionId={sessionId}
       onChatTab={activeTab === 'chat'}
@@ -78,7 +78,7 @@ export function AgentWorkspace({
               <h1 className='truncate text-base font-semibold'>{currentAgent.name || 'Headmaster runtime'}</h1>
               <div className='mt-2 flex items-center gap-2'>
                 <Badge variant={statusVariant(currentAgent.live_status)}>{currentAgent.live_status ?? 'unknown'}</Badge>
-                <span className='truncate font-mono text-xs text-muted-foreground'>{currentAgent.agent37_id}</span>
+                <span className='truncate font-mono text-xs text-muted-foreground'>{currentAgent.runtime_id}</span>
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@ export function AgentWorkspace({
               return (
                 <Link
                   key={tab.id}
-                  href={agentTabPath(currentAgent.agent37_id, tab.id)}
+                  href={agentTabPath(currentAgent.runtime_id, tab.id)}
                   className={cn(
                     'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                     active
@@ -110,25 +110,24 @@ export function AgentWorkspace({
               <ChatSidebar />
             ) : (
               <div className='flex-1 p-4 text-sm text-muted-foreground'>
-                {activeTab === 'files' && 'Browse and edit files in the Agent37 instance.'}
+                {activeTab === 'files' && 'Browse and edit files in the managed runtime.'}
                 {activeTab === 'integrations' && 'Connect third-party apps to this agent.'}
                 {activeTab === 'settings' && 'Manage your headmaster runtime: lifecycle, shape, apps, budget.'}
               </div>
             )}
 
-            {/* Plain users don't get DashboardShell's console-level account menu (see
-                DashboardShell.tsx) — it lives here, in the sidebar they actually use, instead. */}
-            {userEmail ? (
-              <div className='mt-auto border-t p-3'>
-                <AccountMenu userEmail={userEmail} caption='' />
-              </div>
-            ) : null}
           </div>
+
+          {userEmail ? (
+            <div className='mt-auto border-t p-3'>
+              <AccountMenu userEmail={userEmail} caption='' />
+            </div>
+          ) : null}
         </aside>
 
         <main className='min-w-0 flex-1'>
           {activeTab === 'chat' && <ChatView />}
-          {activeTab === 'files' && <FilesTab agentId={currentAgent.agent37_id} />}
+          {activeTab === 'files' && <FilesTab agentId={currentAgent.runtime_id} />}
           {activeTab === 'integrations' && <RuntimeIntegrations />}
           {activeTab === 'settings' && <RuntimeSettingsTab agent={currentAgent} onChanged={refreshRuntime} />}
         </main>

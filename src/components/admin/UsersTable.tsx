@@ -108,7 +108,7 @@ export function UsersTable({
                 <Badge variant={user.beta_approved ? "success" : "warning"}>{user.beta_approved ? "Approved" : "Pending"}</Badge>
               </span>
               <span>{user.is_admin ? <Badge variant="success">Admin</Badge> : null}</span>
-              <span className="truncate text-xs text-muted-foreground">{user.agent37_id ? (user.agent37_status ?? "provisioned") : "none yet"}</span>
+              <span className="truncate text-xs text-muted-foreground">{user.runtime_id ? (user.runtime_status ?? "provisioned") : "none yet"}</span>
               <span className="flex flex-col gap-1">
                 <Button
                   size="sm"

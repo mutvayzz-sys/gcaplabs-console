@@ -1,6 +1,6 @@
 -- Organizations ("school" model): a user belongs to at most one organization, with an org_role
 -- of 'admin' or 'member' scoping org-level oversight. Agent ownership is untouched — every user
--- still has exactly one personal Agent37 agent (profiles.agent37_id), organizations are purely a
+-- still has exactly one personal managed runtime (profiles.runtime_id), organizations are purely a
 -- grouping + org-scoped-admin layer on top, distinct from profiles.is_admin (site-wide admin).
 create table if not exists public.organizations (
   id          uuid primary key default gen_random_uuid(),

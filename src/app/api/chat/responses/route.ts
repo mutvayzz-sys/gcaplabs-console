@@ -1,4 +1,4 @@
-import { instanceFetch } from "@/lib/agent37";
+import { instanceFetch, waitForAgentHealthy } from "@/lib/managed-runtime";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleError, readJson } from "@/lib/http";
 import { upstreamErrorMessage } from "../_helpers";
@@ -13,7 +13,7 @@ interface ResponsesBody {
 }
 
 // Run a chat turn and stream the agent's reply back as Server-Sent Events.
-// Each user has one Agent37 instance,
+// Each user has one managed runtime,
 // so we don't need an [id] param — instanceFetch resolves the user's runtime.
 export async function POST(request: Request) {
   try {
@@ -35,6 +35,9 @@ export async function POST(request: Request) {
     }
     if (body.reasoning_effort) payload.reasoning_effort = body.reasoning_effort;
     if (files.length) payload.files = files;
+
+    // See waitForAgentHealthy: "running" doesn't guarantee the harness is accepting requests yet.
+    await waitForAgentHealthy();
 
     const upstream = await instanceFetch("/v1/responses", {
       method: "POST",

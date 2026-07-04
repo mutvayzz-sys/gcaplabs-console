@@ -1,4 +1,4 @@
-# Build your own Agent37 agent image.
+# Build your own custom runtime image.
 #
 # This is an EXAMPLE. The two customizations below — a CLI (cowsay) and a skill
 # (hello/) — are placeholders that show you WHERE and HOW to add your own. Swap
@@ -9,14 +9,14 @@
 #   - keep the image <= 5 GB compressed
 #   - bake into /usr/local or /opt, never /home/node or /home/linuxbrew
 #     (both are persistent volumes that mask anything baked there at runtime)
-#   - keep the base ENTRYPOINT (it starts Hermes + the gateway/chat API)
+#   - keep the base ENTRYPOINT (it starts Runtime + the gateway/chat API)
 #   - install as root, end as USER node
 #
 # This example uses :latest so it tracks new base releases automatically — handy for
 # getting started. For reproducible PRODUCTION builds, pin a date tag (e.g.
 # :2026.06.16a) instead; the current tag is in the docs:
-#   https://www.agent37.com/docs/agents-api/templates#build-on-the-hermes-base-image
-FROM ghcr.io/agent37-platform/hermes-base:latest
+#   https://docs.runtime-provider.example/docs/agents-api/templates#build-on-the-runtime-base-image
+FROM ghcr.io/runtime-platform/runtime-base:latest
 
 USER root
 
@@ -29,8 +29,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # (2) EXAMPLE SKILL — baked into the default-skills dir (NOT /home, which is masked).
-#     The base entrypoint copies it into ~/.hermes/skills on boot, where Hermes loads it.
+#     The base entrypoint copies it into ~/.runtime/skills on boot, where the runtime loads it.
 #     A skill is a folder with a SKILL.md. Replace hello/ with your own skill.
-COPY hello /usr/local/share/agent37/default-skills/hello
+COPY hello /usr/local/share/runtime/default-skills/hello
 
 USER node

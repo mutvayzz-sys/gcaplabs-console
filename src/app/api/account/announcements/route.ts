@@ -8,7 +8,7 @@ export interface UnreadAnnouncement {
   created_at: string;
 }
 
-// Active announcements the caller hasn't dismissed yet — used for the banner in DashboardShell.
+// Active announcements the caller hasn't dismissed yet — used for the banner in the dashboard layout.
 export async function GET() {
   try {
     const { db, user } = await requireUser();

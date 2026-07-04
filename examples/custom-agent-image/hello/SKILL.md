@@ -14,7 +14,7 @@ tells the agent when to reach for it, and a body that tells it what to do.
 When the user asks you to greet someone, run:
 
 ```bash
-cowsay "Hello from your own Agent37 image!"
+cowsay "Hello from your own Runtime Provider image!"
 ```
 
 Return the command's output.

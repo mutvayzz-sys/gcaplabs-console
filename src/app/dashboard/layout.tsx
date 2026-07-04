@@ -1,17 +1,16 @@
 import { redirect } from "next/navigation";
-import { getSession, isConsoleAdmin, isOrgAdmin } from "@/lib/auth";
-import { unreadMessageCount } from "@/lib/messages";
-import { DashboardShell } from "@/components/DashboardShell";
+import { getSession } from "@/lib/auth";
+import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 
+// Every user has exactly one agent (see MANAGED_AGENT_ID) and lands straight in its workspace,
+// which has its own nav (tabs, chats rail, account menu) — so there's no fleet-level chrome here.
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user } = await getSession();
   if (!user) redirect("/login");
-  const [isAdmin, orgAdmin] = await Promise.all([isConsoleAdmin(user.id), isOrgAdmin(user.id)]);
-  // Only admins see the Messages nav item, so only bother counting when it'll actually be shown.
-  const unreadMessages = isAdmin ? await unreadMessageCount() : 0;
   return (
-    <DashboardShell userEmail={user.email ?? "Signed in"} isAdmin={isAdmin} isOrgAdmin={orgAdmin} unreadMessages={unreadMessages}>
-      {children}
-    </DashboardShell>
+    <div className="flex min-h-screen flex-col">
+      <AnnouncementBanner />
+      <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-6">{children}</main>
+    </div>
   );
 }

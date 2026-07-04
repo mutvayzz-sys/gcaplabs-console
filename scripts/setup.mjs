@@ -277,7 +277,7 @@ async function configureAuth(call, ref, siteUrl) {
 }
 
 function printHelp() {
-  log(`${bold("agent37-starter-kit setup")}
+  log(`${bold("gcaplabs-console setup")}
 
 Usage: npm run setup [-- options]
 
@@ -309,7 +309,7 @@ async function main() {
     return;
   }
 
-  log(bold("Setting up agent37-starter-kit\n"));
+  log(bold("Setting up gcaplabs-console\n"));
 
   if (!fs.existsSync(ENV_FILE)) {
     if (!fs.existsSync(ENV_EXAMPLE)) die("Missing .env.example — are you in the project root?");
@@ -317,7 +317,7 @@ async function main() {
     step("Created .env.local");
     log(
       `\nPaste your two secrets into ${bold(".env.local")}, then run ${bold("npm run setup")} again:\n` +
-        `  ${cyan("AGENT37_API_KEY")}        your sk_live_ key (Agent37 dashboard → Cloud → API keys)\n` +
+        `  ${cyan("RUNTIME_API_KEY")}        your sk_live_ key (provider dashboard → Cloud → API keys)\n` +
         `  ${cyan("SUPABASE_ACCESS_TOKEN")}  a token from https://supabase.com/dashboard/account/tokens`
     );
     return;
@@ -335,8 +335,8 @@ async function main() {
         `${dim('"Manual Supabase setup" section in SETUP.md.')}`
     );
   }
-  if (isBlank(get(env, "AGENT37_API_KEY"))) {
-    warn("AGENT37_API_KEY is still blank — the app needs it at runtime. Fill it in .env.local.");
+  if (isBlank(get(env, "RUNTIME_API_KEY"))) {
+    warn("RUNTIME_API_KEY is still blank — the app needs it at runtime. Fill it in .env.local.");
   }
 
   const call = api(token);
@@ -393,7 +393,7 @@ async function main() {
     log(`  ${dim("Creating project (this takes a minute or two)…")}`);
     let project;
     try {
-      ({ project } = await createProject(call, { name: "agent37-starter-kit", orgSlug, region }));
+      ({ project } = await createProject(call, { name: "gcaplabs-console", orgSlug, region }));
     } catch (e) {
       const atLimit = /maximum limits|free project|project limit/i.test(e.message || "");
       if (atLimit || e.status === 403) {
@@ -451,7 +451,7 @@ async function main() {
   log(`\nNext:`);
   log(`  ${bold("npm run dev")}   ${dim("# then open http://localhost:3000 and sign in")}`);
   log(
-    `\n${yellow("!")} Creating an agent spends real money — fund your Agent37 wallet first\n` +
+    `\n${yellow("!")} Creating an agent spends real money — fund your provider wallet first\n` +
       `  ${dim("(dashboard → Cloud → Billing). An empty wallet returns a 402 at create time.")}`
   );
   if (siteUrl.includes("localhost")) {

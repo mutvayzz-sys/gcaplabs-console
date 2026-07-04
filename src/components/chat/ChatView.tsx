@@ -70,7 +70,7 @@ export function ChatView() {
   );
   const headerTitle = activeTitle || (activeSessionId ? "Chat" : "New chat");
   const agentName = useMemo(() => {
-    const a = agents.find((x) => x.agent37_id === agentId);
+    const a = agents.find((x) => x.runtime_id === agentId);
     return a?.name?.trim() || agentId;
   }, [agents, agentId]);
 

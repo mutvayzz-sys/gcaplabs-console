@@ -40,7 +40,7 @@ export interface Invitation {
 }
 
 export interface AgentRow {
-  agent37_id: string;
+  runtime_id: string;
   workspace_id: string;
   name: string | null;
   status: string | null;
@@ -149,11 +149,11 @@ export interface MergedAgent extends AgentRow {
   update_available: boolean;
 }
 
-// ---- Agent37 Agents API (data plane: per-instance web chat) ----
+// ---- runtime data-plane API (data plane: per-instance web chat) ----
 
-// One model the instance's agent can run (GET /v1/models -> data[]). Current Hermes builds report
+// One model the instance's agent can run (GET /v1/models -> data[]). Current runtime builds report
 // the provider slug as `owned_by` ("anthropic"); the older metered build used `provider`
-// ("custom:agent37"). Read `owned_by ?? provider` so the switcher groups correctly on either.
+// ("custom:runtime"). Read `owned_by ?? provider` so the switcher groups correctly on either.
 export interface AgentModel {
   id: string;
   label: string;
@@ -184,7 +184,7 @@ export interface SessionDetail {
   history: ChatHistoryMessage[];
 }
 
-// One conversation in the instance's session list (GET /v1/sessions -> data[]). Current Hermes
+// One conversation in the instance's session list (GET /v1/sessions -> data[]). Current Runtime
 // builds carry a server-side `title` (settable via PATCH /v1/sessions/{id}) plus a `preview` of
 // the first message and `last_active`/`started_at` timestamps. The rail label is resolved in the
 // sessions route as `title || preview`; ordering is by `last_active`. There is no local sessions
@@ -201,7 +201,7 @@ export interface SessionListResponse {
   data: SessionSummary[];
 }
 
-// ---- Agent37 Agents API file browser (data plane: per-instance /v1/files) ----
+// ---- runtime data-plane API file browser (data plane: per-instance /v1/files) ----
 
 // One entry in a directory listing, also returned by every write (PUT/PATCH/POST dir). The
 // `path` is the resolved ABSOLUTE path and is the identity used by every other call. `modified`

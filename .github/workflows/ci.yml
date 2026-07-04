@@ -22,7 +22,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
       SUPABASE_SERVICE_ROLE_KEY: sb_secret_ci_placeholder
       NEXT_PUBLIC_SITE_URL: https://console.gcaplabs.com
-      AGENT37_API_KEY: ci_placeholder
+      RUNTIME_API_KEY: ci_placeholder
     steps:
       - uses: actions/checkout@v4
 

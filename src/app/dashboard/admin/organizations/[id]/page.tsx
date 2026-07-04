@@ -7,7 +7,7 @@ import type { AdminProfileRow } from "@/app/api/admin/users/route";
 
 export const dynamic = "force-dynamic";
 
-const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,org_role,agent37_id,agent37_status,created_at";
+const PROFILE_COLUMNS = "id,email,display_name,beta_approved,is_admin,org_role,runtime_id,runtime_status,created_at";
 
 export default async function AdminOrgDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireConsoleAdminOrRedirect(agentTabPath(MANAGED_AGENT_ID, "chat"));

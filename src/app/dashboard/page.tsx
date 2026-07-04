@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   await requireConsoleAdminOrRedirect(agentTabPath(MANAGED_AGENT_ID, "chat"));
-  const { agent, instance, agent37Id } = await getManagedAgent();
+  const { agent, instance, runtimeId } = await getManagedAgent();
   const runtimeReady = instance.status === "running";
 
   return (
@@ -20,13 +20,13 @@ export default async function DashboardPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Your Agent</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Powered by Agent37 Cloud</p>
+          <p className="mt-1 text-sm text-muted-foreground">Powered by the managed runtime cloud</p>
         </div>
       </div>
 
       <section className="overflow-hidden rounded-lg border bg-card">
         <Link
-          href={agentTabPath(agent.agent37_id, "chat")}
+          href={agentTabPath(agent.runtime_id, "chat")}
           className="grid gap-4 p-4 transition-colors hover:bg-secondary/45 md:grid-cols-[1fr_auto]"
         >
           <div className="min-w-0">
@@ -35,7 +35,7 @@ export default async function DashboardPage() {
               <Badge variant={statusVariant(agent.live_status)}>{agent.live_status ?? "unknown"}</Badge>
             </div>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Your managed Agent37 instance. Open it to chat, browse files, review integrations, and
+              Your managed runtime. Open it to chat, browse files, review integrations, and
               inspect settings without exposing the shared Cloud API key.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -47,8 +47,8 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden text-right text-xs text-muted-foreground sm:block">
-              <div className="font-mono">{agent37Id}</div>
-              <div>{runtimeReady ? "Agent37 connected" : "Provisioning"}</div>
+              <div className="font-mono">{runtimeId}</div>
+              <div>{runtimeReady ? "Runtime provider connected" : "Provisioning"}</div>
             </div>
             <Button asChild size="sm">
               <span>
