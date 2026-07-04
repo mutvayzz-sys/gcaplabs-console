@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +49,9 @@ export function OrganizationsTable({ initialOrganizations }: { initialOrganizati
         ) : (
           organizations.map((org) => (
             <div key={org.id} className="grid grid-cols-[1fr_100px_160px] items-center border-b px-4 py-3 text-sm last:border-b-0">
-              <span className="truncate font-medium">{org.name}</span>
+              <Link href={`/dashboard/admin/organizations/${org.id}`} className="truncate font-medium hover:underline">
+                {org.name}
+              </Link>
               <span>{org.member_count}</span>
               <span className="text-xs text-muted-foreground">{new Date(org.created_at).toLocaleDateString()}</span>
             </div>
