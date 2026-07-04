@@ -16,7 +16,6 @@ import { SHAPE_PRESETS, shapeFor, shapeLabel, type Shape } from '@/config/agents
 import { isTransitional, statusVariant } from '@/lib/format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { OpenPortButtons } from '@/components/OpenPortButtons';
 import { useAsyncAction } from '@/components/useAsyncAction';
 import { cn } from '@/lib/utils';
 import type { MergedAgent } from '@/lib/types';
@@ -28,7 +27,9 @@ import type { MergedAgent } from '@/lib/types';
 //     on next dashboard visit if the underlying Agent37 instance is gone)
 //
 // Sections in render order: header (name + lifecycle + status), Update banner
-// (when applicable), Apps (open signed ports), Shape picker, Budget, Info rows.
+// (when applicable), Shape picker, Budget, Info rows. Opening the runtime's own
+// signed-port apps (Hermes dashboard/terminal/files) is admin-only now — see
+// RuntimeControlPanel.tsx under the admin User Detail page — never exposed here.
 export function RuntimeSettingsTab({
   agent,
   onChanged,
@@ -117,7 +118,6 @@ export function RuntimeSettingsTab({
         />
       )}
 
-      <AppsSection agent={agent} />
       <ShapeSection agent={agent} onChanged={onChanged} />
       <InfoSection agent={agent} />
     </div>
@@ -156,31 +156,6 @@ function UpdateBanner({
         Update
       </Button>
     </div>
-  );
-}
-
-function AppsSection({ agent }: { agent: MergedAgent }) {
-  const running = agent.live_status === 'running';
-  const openableCount = agent.ports.filter((p) => !p.default).length;
-
-  return (
-    <section className='rounded-lg border p-5'>
-      <h2 className='text-sm font-semibold'>Apps</h2>
-      <p className='mt-0.5 text-sm text-muted-foreground'>
-        Open this runtime&apos;s own web apps, such as dashboard, terminal, or file browser, using
-        short-lived signed links.
-      </p>
-      <div className='mt-4'>
-        {openableCount > 0 ? (
-          <OpenPortButtons ports={agent.ports} disabled={!running} />
-        ) : (
-          <p className='text-sm text-muted-foreground'>No app ports are available yet.</p>
-        )}
-        {!running && openableCount > 0 && (
-          <p className='mt-2 text-xs text-muted-foreground'>Start the runtime to open its apps.</p>
-        )}
-      </div>
-    </section>
   );
 }
 
