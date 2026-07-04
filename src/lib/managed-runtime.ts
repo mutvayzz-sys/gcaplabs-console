@@ -189,9 +189,13 @@ export const runtimeApi = {
   makeDir: (id: string, path: string) =>
     instanceCall<FileEntry>(id, `/v1/files/dir?path=${encodeURIComponent(path)}`, { method: "POST" }),
 
-  listIntegrationToolkits: (id: string, opts: { search?: string } = {}) => {
-    const q = opts.search ? `?search=${encodeURIComponent(opts.search)}` : "";
-    return hostingCall<IntegrationToolkitsResult>(`/instances/${id}/integrations/toolkits${q}`);
+  listIntegrationToolkits: (id: string, opts: { search?: string; cursor?: string; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.search) params.set("search", opts.search);
+    if (opts.cursor) params.set("cursor", opts.cursor);
+    if (opts.limit) params.set("limit", String(opts.limit));
+    const q = params.toString();
+    return hostingCall<IntegrationToolkitsResult>(`/instances/${id}/integrations/toolkits${q ? `?${q}` : ""}`);
   },
   connectIntegration: (id: string, body: { toolkit: string }) =>
     hostingCall<IntegrationConnectResult>(`/instances/${id}/integrations/connect`, {

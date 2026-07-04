@@ -115,6 +115,8 @@ export interface IntegrationToolkit {
 
 export interface IntegrationToolkitsResult {
   items: IntegrationToolkit[];
+  nextCursor: string | null;
+  totalItems?: number;
 }
 
 // Composio's connected-account shape, as returned by the v1 connections endpoint.
