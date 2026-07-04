@@ -89,6 +89,8 @@ export function ComposioApps() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const requestSeq = useRef(0);
   const searchParams = useSearchParams();
+  const connectedAccountId = searchParams.get('connected_account_id');
+  const oauthError = oauthErrorFromParams(searchParams);
   const registeredRef = useRef<string | null>(null);
   const oauthPopupRef = useRef<Window | null>(null);
   const oauthPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -169,8 +171,6 @@ export function ComposioApps() {
   // gets a callable tool. In a popup, notify the opener and close; in same-tab fallback,
   // keep the UI recoverable and remove callback params from browser history.
   useEffect(() => {
-    const connectedAccountId = searchParams.get('connected_account_id');
-    const oauthError = oauthErrorFromParams(searchParams);
     const isPopupReturn = Boolean(window.opener && window.opener !== window);
 
     if (oauthError) {
@@ -199,7 +199,7 @@ export function ComposioApps() {
           window.opener.postMessage({ type: 'composio-oauth', status: 'error', error: message } satisfies OAuthPopupMessage, window.location.origin);
         }
       });
-  }, [searchParams, completeOAuthConnection]);
+  }, [connectedAccountId, oauthError, completeOAuthConnection]);
 
   const fetchPage = useCallback((query: string, sort: SortBy, pageCursor: string | null, seq: number) => {
     const qs = new URLSearchParams();
@@ -223,7 +223,9 @@ export function ComposioApps() {
     const seq = ++requestSeq.current;
     debounceRef.current = setTimeout(() => {
       setLoadingFirstPage(true);
-      setError(null);
+      // Preserve an OAuth callback/cancel error while the first toolkit fetch races on mount;
+      // otherwise the catalog request can clear the user-visible failure immediately.
+      if (!oauthError) setError(null);
       fetchPage(query, sortBy, null, seq)
         .catch((e: Error) => {
           if (seq === requestSeq.current) setError(e.message);
@@ -235,7 +237,7 @@ export function ComposioApps() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [search, sortBy, fetchPage]);
+  }, [search, sortBy, fetchPage, oauthError]);
 
   // Infinite scroll: load the next page once the sentinel at the bottom of the grid is visible.
   useEffect(() => {

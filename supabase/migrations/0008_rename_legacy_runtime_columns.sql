@@ -1,8 +1,7 @@
--- The Agent37 -> Runtime Provider rebrand renamed every code reference from
--- profiles.agent37_* to profiles.runtime_*, but migration 0002 was edited in place
--- rather than given a new forward migration, so it never re-ran against the already-
--- provisioned database. Production still has the original agent37_* columns, which
--- surfaces as "column profiles.runtime_id does not exist" on every profile query.
+-- Forward migration for databases that were already provisioned before the
+-- runtime-provider column rename landed in the baseline migration. Migration 0002
+-- was edited in place, so existing databases still need these legacy column names
+-- renamed once to match the current runtime_* schema.
 
 alter table public.profiles rename column agent37_id to runtime_id;
 alter table public.profiles rename column agent37_status to runtime_status;

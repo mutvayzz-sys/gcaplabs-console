@@ -5,14 +5,17 @@ export const branding = {
   appName: "Headmaster",
   appShortName: "Headmaster",
   logoUrl: "",
-  // Site-wide theme tokens — keep in sync with docs/theming/gcap-brand-tokens.ts
+  // Site-wide theme tokens — keep in sync with src/app/globals.css.
+  // v0.2.0, 2026-07-05: replaces the retired green/gold/parchment palette.
+  // Source: owner-supplied Headmaster logo spec sheet + UI reference mockups.
   theme: {
-    primary: "#1a4d2e",
-    primaryHover: "#143d25",
-    gold: "#c9a96e",
-    paper: "#f4f1ea",
-    surface: "#faf7f2",
-    ink: "#1a1814",
-    muted: "#5e564a",
+    primary: "#2563ff",
+    accent: "#7c3aed",
+    ink: "#0d0f14",
+    paper: "#ffffff",
+    surface: "#f1f2f6",
+    muted: "#5b6472",
+    pillPriority: "#ff2d8f",
+    pillWarning: "#ffb020",
   },
 } as const;

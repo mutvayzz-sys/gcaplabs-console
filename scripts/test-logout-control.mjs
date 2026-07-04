@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const dashboardShell = fs.readFileSync(path.join(root, 'src/components/DashboardShell.tsx'), 'utf8');
+const dashboardLayout = fs.readFileSync(path.join(root, 'src/app/dashboard/layout.tsx'), 'utf8');
+const agentWorkspacePage = fs.readFileSync(path.join(root, 'src/app/dashboard/agents/[agentId]/[[...tab]]/page.tsx'), 'utf8');
 const agentWorkspace = fs.readFileSync(path.join(root, 'src/components/AgentWorkspace.tsx'), 'utf8');
 const accountMenu = fs.readFileSync(path.join(root, 'src/components/AccountMenu.tsx'), 'utf8');
 
@@ -13,18 +14,24 @@ function assert(condition, message) {
 }
 
 assert(
-  dashboardShell.includes('<AccountMenu userEmail={userEmail} />'),
-  'DashboardShell must render AccountMenu for authenticated dashboard users.'
+  dashboardLayout.includes('if (!user) redirect("/login")'),
+  'Dashboard layout must keep unauthenticated users out of protected dashboard routes.'
 );
 
 assert(
-  !dashboardShell.includes('isAdmin || isOrgAdmin ? (') && !dashboardShell.includes('{isAdmin || isOrgAdmin ?'),
-  'DashboardShell AccountMenu must not be gated to admins/org admins; all authenticated users need logout.'
+  agentWorkspacePage.includes('userEmail={user?.email ?? null}') && agentWorkspace.includes('<AccountMenu userEmail={userEmail}'),
+  'Authenticated agent-workspace users must receive an AccountMenu with logout.'
 );
 
 assert(
-  !agentWorkspace.includes('<AccountMenu userEmail={userEmail}'),
-  'AgentWorkspace should not render a second account menu once DashboardShell owns logout globally.'
+  !agentWorkspace.includes('isAdmin || isOrgAdmin ? (') && !agentWorkspace.includes('{isAdmin || isOrgAdmin ?'),
+  'AgentWorkspace AccountMenu must not be gated to admins/org admins; all authenticated users need logout.'
+);
+
+assert(
+  !agentWorkspace.includes('<AccountMenu userEmail={userEmail} caption=\'\' />') ||
+    agentWorkspace.match(/<AccountMenu userEmail={userEmail}/g)?.length === 1,
+  'AgentWorkspace should render exactly one account menu in its single protected workspace shell.'
 );
 
 assert(

@@ -4,6 +4,41 @@ import { handleError } from "@/lib/http";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
+const ALLOWED_CORS_ORIGINS = new Set([
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "file://",
+  "null",
+]);
+
+const ALLOWED_CORS_HEADERS = [
+  "Authorization",
+  "Content-Type",
+  "X-Hermes-Session-Key",
+  "X-Hermes-Session-Token",
+].join(", ");
+
+function corsHeaders(request: Request): Headers {
+  const headers = new Headers();
+  const origin = request.headers.get("origin") ?? "";
+  if (ALLOWED_CORS_ORIGINS.has(origin)) {
+    headers.set("Access-Control-Allow-Origin", origin);
+    headers.set("Vary", "Origin");
+  }
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  headers.set("Access-Control-Allow-Headers", ALLOWED_CORS_HEADERS);
+  headers.set("Access-Control-Max-Age", "600");
+  return headers;
+}
+
+function withCors(request: Request, response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of corsHeaders(request)) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 async function proxy(request: Request, { params }: Ctx) {
   try {
     await requireUser();
@@ -29,10 +64,14 @@ async function proxy(request: Request, { params }: Ctx) {
     const responseHeaders = new Headers(upstream.headers);
     responseHeaders.delete("content-encoding");
     responseHeaders.delete("content-length");
-    return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
+    return withCors(request, new Response(upstream.body, { status: upstream.status, headers: responseHeaders }));
   } catch (e) {
-    return handleError(e);
+    return withCors(request, handleError(e));
   }
+}
+
+export function OPTIONS(request: Request) {
+  return new Response(null, { status: 204, headers: corsHeaders(request) });
 }
 
 export const GET = proxy;

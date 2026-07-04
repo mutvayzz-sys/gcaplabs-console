@@ -3658,3 +3658,53 @@ bash -n template/release.sh && node --check scripts/setup.mjs && node --check sc
 
 Package scripts checked: this repo has no `lint` or `test` script; the available quality gates are `typecheck`, `build`, `smoke`, and `release:agent`.
 
+## Verification — t_fe2b9b8c
+
+Final verification run from repo root on 2026-07-04.
+
+### Final grep command
+
+```sh
+rg -i -n --hidden \
+  --glob '!node_modules/**' \
+  --glob '!dist/**' \
+  --glob '!build/**' \
+  --glob '!.git/**' \
+  --glob '!vendor/**' \
+  --glob '!.next/**' \
+  --glob '!.vercel/**' \
+  --glob '!BRANDING_AUDIT.md' \
+  --glob '!package-lock.json' \
+  'agent37|hermes' .
+
+find . \
+  \( -path './node_modules' -o -path './dist' -o -path './build' -o -path './.git' -o -path './vendor' -o -path './.next' -o -path './.vercel' \) -prune -o \
+  \( -iname '*agent37*' -o -iname '*hermes*' \) -print | grep -v '^./BRANDING_AUDIT.md$'
+```
+
+### Remaining hits
+
+Content hits: **6** matching lines across **1** source file.
+Path/name hits: **0**.
+`hermes` hits outside this audit and generated/vendor/lock outputs: **0**.
+
+All remaining content hits are intentional compatibility references in `supabase/migrations/0008_rename_legacy_runtime_columns.sql`. The migration must name the legacy database columns/index so already-provisioned databases can rename them forward to the current `runtime_*` schema.
+
+- `agent37_id` -> `runtime_id` — required old column name in a forward SQL rename.
+- `agent37_status` -> `runtime_status` — required old column name in a forward SQL rename.
+- `agent37_name` -> `runtime_name` — required old column name in a forward SQL rename.
+- `agent37_template` -> `runtime_template` — required old column name in a forward SQL rename.
+- `agent37_created_at` -> `runtime_created_at` — required old column name in a forward SQL rename.
+- `profiles_agent37_id_idx` -> `profiles_runtime_id_idx` — required old index name in a forward SQL rename.
+
+During this verification pass, the migration filename was renamed from `0008_rename_agent37_columns_to_runtime.sql` to `0008_rename_legacy_runtime_columns.sql`, and its comments were rewritten to remove non-essential legacy brand mentions. Only the SQL identifiers that must exist for the migration remain.
+
+### Build, type-check, lint, test, and smoke results
+
+- `npm run typecheck` — pass (`tsc --noEmit`).
+- `npm run build` — pass (`next build`; compiled successfully, TypeScript passed, 46/46 static pages generated).
+- `npm run test:oauth` — pass (`Composio OAuth popup regression passed.`).
+- `npm run lint` — not configured (`npm error Missing script: "lint"`). No lint script or ESLint dependency is present in `package.json`.
+- Local running-console smoke — pass. Ran `npm run start -- -p 3027`, then fetched `/`, `/login`, and `/reset-password` with `curl -L`; each returned `200 text/html`, contained Next app render markers, and had zero `agent37` / `hermes` matches in the rendered HTML.
+- `npm run smoke` was not run because `scripts/smoke.mjs` is an opt-in paid external smoke that requires a live `RUNTIME_API_KEY` and creates/deletes a real runtime-provider instance. The local console smoke above covered the requested UI/runtime render sanity check without spending live provider credits.
+
