@@ -99,10 +99,15 @@ export function DashboardShell({
           </div>
         ) : null}
 
-        {/* Account + workspace switcher, pinned to the bottom near the user's identity. */}
-        <div className="mt-auto border-t pt-3">
-          <AccountMenu userEmail={userEmail} />
-        </div>
+        {/* Plain users (no admin/org-admin nav above) don't need this console-level identity
+            chrome at all — their account menu + sign out lives in the agent workspace's own
+            sidebar instead (see AgentWorkspace.tsx). Admins/org admins navigate multiple console
+            pages, so they keep it here. */}
+        {isAdmin || isOrgAdmin ? (
+          <div className="mt-auto border-t pt-3">
+            <AccountMenu userEmail={userEmail} />
+          </div>
+        ) : null}
       </aside>
 
       <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">

@@ -4,7 +4,7 @@ import { LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
-export function AccountMenu({ userEmail }: { userEmail: string }) {
+export function AccountMenu({ userEmail, caption = "Headmaster Console" }: { userEmail: string; caption?: string }) {
   const initial = (userEmail.trim()[0] ?? "?").toUpperCase();
 
   async function signOut() {
@@ -20,7 +20,7 @@ export function AccountMenu({ userEmail }: { userEmail: string }) {
         </span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-medium">{userEmail}</span>
-          <span className="block truncate text-xs text-muted-foreground">Headmaster Console</span>
+          {caption ? <span className="block truncate text-xs text-muted-foreground">{caption}</span> : null}
         </span>
       </div>
       <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground" onClick={signOut}>

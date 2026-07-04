@@ -237,6 +237,13 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
     .maybeSingle();
   if (profileError) throw new Agent37Error(500, "db_error", profileError.message);
 
+  // beta_approved gates ALL runtime access, not just first-time creation — a profile that already
+  // has an agent37_id (e.g. approved once, then revoked) must not keep working just because the
+  // instance already exists. Checked before either branch below runs.
+  if ((profile as { beta_approved?: boolean } | null)?.beta_approved !== true) {
+    throw new Agent37Error(403, "not_approved", "Your account is pending approval before a runtime can be used.");
+  }
+
   let agentId = (profile as { agent37_id?: string | null } | null)?.agent37_id ?? null;
   if (agentId) {
     const instance = await agent37.getAgent(agentId);
@@ -245,12 +252,7 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
   }
 
   // No runtime yet — this is the one place that spends money (agent37.createAgent provisions a
-  // real, billed instance). Gate it on admin approval so open signup can't spin up instances for
-  // anyone who registers; an operator must flip profiles.beta_approved first.
-  if ((profile as { beta_approved?: boolean } | null)?.beta_approved !== true) {
-    throw new Agent37Error(403, "not_approved", "Your account is pending approval before a runtime can be created.");
-  }
-
+  // real, billed instance).
   const email = (user as { email?: string | null }).email ?? (profile as { email?: string | null } | null)?.email ?? null;
   const displayName =
     (profile as { display_name?: string | null } | null)?.display_name ||
@@ -260,7 +262,7 @@ export async function getCurrentAgent37Runtime(): Promise<ManagedRuntime> {
   const instance = await agent37.createAgent({
     template: DEFAULT_TEMPLATE,
     user: user.id,
-    name: `${displayName}'s Headmaster`,
+    name: email ? `Gcaplabs-${email}` : `${displayName}'s Headmaster`,
     metadata: { app: "headmaster-console", supabase_user_id: user.id, email },
     budget: DEFAULT_CREDIT_MICROS > 0 ? { credit_micros: DEFAULT_CREDIT_MICROS } : undefined,
   });

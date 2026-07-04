@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Files, MessageSquare, Plug, Settings } from 'lucide-react';
+import { AccountMenu } from '@/components/AccountMenu';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatView } from '@/components/chat/ChatView';
@@ -23,7 +24,15 @@ const TABS: Array<{ id: AgentTab; label: string; icon: typeof MessageSquare }> =
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export function AgentWorkspace({ agent, activeTab }: { agent: MergedAgent; activeTab: AgentTab }) {
+export function AgentWorkspace({
+  agent,
+  activeTab,
+  userEmail,
+}: {
+  agent: MergedAgent;
+  activeTab: AgentTab;
+  userEmail?: string | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = activeTab === 'chat' ? searchParams.get('session') : null;
@@ -96,15 +105,25 @@ export function AgentWorkspace({ agent, activeTab }: { agent: MergedAgent; activ
             })}
           </nav>
 
-          {activeTab === 'chat' ? (
-            <ChatSidebar />
-          ) : (
-            <div className='flex-1 p-4 text-sm text-muted-foreground'>
-              {activeTab === 'files' && 'Browse and edit files in the Agent37 instance.'}
-              {activeTab === 'integrations' && 'Connect third-party apps to this agent.'}
-              {activeTab === 'settings' && 'Manage your headmaster runtime: lifecycle, shape, apps, budget.'}
-            </div>
-          )}
+          <div className='flex min-h-0 flex-1 flex-col'>
+            {activeTab === 'chat' ? (
+              <ChatSidebar />
+            ) : (
+              <div className='flex-1 p-4 text-sm text-muted-foreground'>
+                {activeTab === 'files' && 'Browse and edit files in the Agent37 instance.'}
+                {activeTab === 'integrations' && 'Connect third-party apps to this agent.'}
+                {activeTab === 'settings' && 'Manage your headmaster runtime: lifecycle, shape, apps, budget.'}
+              </div>
+            )}
+
+            {/* Plain users don't get DashboardShell's console-level account menu (see
+                DashboardShell.tsx) — it lives here, in the sidebar they actually use, instead. */}
+            {userEmail ? (
+              <div className='mt-auto border-t p-3'>
+                <AccountMenu userEmail={userEmail} caption='' />
+              </div>
+            ) : null}
+          </div>
         </aside>
 
         <main className='min-w-0 flex-1'>
