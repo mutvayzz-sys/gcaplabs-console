@@ -28,14 +28,21 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 }
 
-const ACTIONS = ["start", "stop", "restart", "delete"] as const;
+// Mirrors the actions available in Agent37's own dashboard "..." menu for an instance
+// (Restart / Stop / Delete / Re-pull image), plus rename (the pencil icon there).
+const ACTIONS = ["start", "stop", "restart", "delete", "update"] as const;
 type Action = (typeof ACTIONS)[number];
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { db } = await requireConsoleAdmin();
     const { id } = await params;
-    const body = await readJson<{ action?: Action; monthly_cap_micros?: number }>(request);
+    const body = await readJson<{
+      action?: Action;
+      monthly_cap_micros?: number;
+      name?: string;
+      signed_url_port?: number;
+    }>(request);
     const agentId = await getTargetAgentId(db, id);
 
     if (body.action) {
@@ -50,6 +57,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         case "restart":
           await agent37.restart(agentId);
           break;
+        case "update":
+          // "Re-pull image" in Agent37's own dashboard — updates to the template's latest image.
+          await agent37.update(agentId);
+          break;
         case "delete":
           await agent37.deleteAgent(agentId);
           await db
@@ -59,7 +70,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           return json({ ok: true, deleted: true });
       }
       const instance = await agent37.getAgent(agentId);
-      await db.from("profiles").update({ agent37_status: instance.status }).eq("id", id);
+      await db.from("profiles").update({ agent37_status: instance.status, agent37_name: instance.name }).eq("id", id);
       return json({ ok: true, instance });
     }
 
@@ -68,7 +79,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return json({ ok: true, budget });
     }
 
-    throw new ApiError(400, "invalid_request", "action or monthly_cap_micros is required");
+    if (typeof body.name === "string") {
+      const name = body.name.trim();
+      if (!name) throw new ApiError(400, "invalid_request", "name cannot be empty");
+      const instance = await agent37.updateAgent(agentId, { name });
+      await db.from("profiles").update({ agent37_name: instance.name }).eq("id", id);
+      return json({ ok: true, instance });
+    }
+
+    if (typeof body.signed_url_port === "number") {
+      const instance = await agent37.getAgent(agentId);
+      if (!instance.ports?.some((p) => p.port === body.signed_url_port)) {
+        throw new ApiError(404, "not_found", "That port is not exposed by this runtime");
+      }
+      return json(await agent37.signedUrl(agentId, body.signed_url_port));
+    }
+
+    throw new ApiError(400, "invalid_request", "action, monthly_cap_micros, name, or signed_url_port is required");
   } catch (e) {
     return handleError(e);
   }
