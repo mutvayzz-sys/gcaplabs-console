@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RuntimeControlPanel } from "@/components/admin/RuntimeControlPanel";
 import type { AdminProfileRow } from "@/app/api/admin/users/route";
 
 export function UserDetail({ initialUser }: { initialUser: AdminProfileRow }) {
@@ -61,6 +62,13 @@ export function UserDetail({ initialUser }: { initialUser: AdminProfileRow }) {
           {user.is_admin ? "Remove admin" : "Make admin"}
         </Button>
       </div>
+
+      {user.agent37_id ? (
+        <RuntimeControlPanel
+          userId={user.id}
+          onDeleted={() => setUser((prev) => ({ ...prev, agent37_id: null, agent37_status: null }))}
+        />
+      ) : null}
     </div>
   );
 }
