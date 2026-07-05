@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Check, ChevronDown, Sparkles } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,9 +41,9 @@ export function ModelMenu({ groups, model, defaultModel, defaultLabel, disabled,
           type="button"
           disabled={disabled}
           title={`Model: ${label}`}
-          className="inline-flex h-8 max-w-[12rem] items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+          className="inline-flex h-8 max-w-[13rem] items-center gap-1.5 rounded-lg border border-border/80 bg-background px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-foreground/[0.035] hover:text-foreground disabled:opacity-50"
         >
-          <Sparkles className="h-3.5 w-3.5 shrink-0" />
+          <span className="text-muted-foreground/70">Model</span>
           <span className="truncate">{label}</span>
           <ChevronDown className="h-3.5 w-3.5 shrink-0" />
         </button>
@@ -60,7 +60,7 @@ export function ModelMenu({ groups, model, defaultModel, defaultLabel, disabled,
                   <Check className={cn("h-4 w-4", m.id === activeId ? "opacity-100" : "opacity-0")} />
                   <span className="flex-1 truncate">{prettyModelLabel(m.label)}</span>
                   {m.id === defaultModel && (
-                    <span className="ml-2 shrink-0 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <span className="ml-2 shrink-0 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                       Default
                     </span>
                   )}

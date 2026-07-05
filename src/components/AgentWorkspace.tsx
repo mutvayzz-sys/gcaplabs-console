@@ -12,9 +12,7 @@ import { ChatView } from '@/components/chat/ChatView';
 import { FilesTab } from '@/components/files/FilesTab';
 import { ComposioApps } from '@/components/integrations/ComposioApps';
 import { RuntimeSettingsTab } from '@/components/RuntimeSettingsTab';
-import { Badge } from '@/components/ui/badge';
 import { agentTabPath, type AgentTab } from '@/lib/dashboard-tabs';
-import { statusVariant } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { MergedAgent } from '@/lib/types';
 
@@ -69,8 +67,8 @@ export function AgentWorkspace({
       onChatTab={activeTab === 'chat'}
       navigateToSession={navigateToSession}
     >
-      <div className='brand-shell flex h-[calc(100vh-3rem)] min-h-[640px] overflow-hidden rounded-[24px] border border-border/80 bg-background'>
-        <aside className='brand-sidebar flex w-72 shrink-0 flex-col border-r border-border/70'>
+      <div className='brand-shell flex h-full min-h-0 w-full overflow-hidden border-0 bg-background'>
+        <aside className='brand-sidebar flex w-80 shrink-0 flex-col border-r border-border/70'>
           <div className='border-b border-border/70 p-4'>
             <HeadmasterLockup />
             <Link href='/dashboard' className='mt-5 inline-flex text-xs font-medium text-muted-foreground transition-colors hover:text-primary'>
@@ -78,9 +76,11 @@ export function AgentWorkspace({
             </Link>
             <div className='mt-2 min-w-0'>
               <h1 className='truncate text-base font-semibold tracking-tight'>{currentAgent.name || 'Headmaster runtime'}</h1>
-              <div className='mt-2 flex items-center gap-2'>
-                <Badge variant={statusVariant(currentAgent.live_status)}>{currentAgent.live_status ?? 'unknown'}</Badge>
-                <span className='truncate font-mono text-xs text-muted-foreground'>{currentAgent.runtime_id}</span>
+              <div className='mt-2 flex min-w-0 items-center gap-2 text-xs text-muted-foreground'>
+                <span className='inline-flex h-2 w-2 shrink-0 rounded-full bg-[#2563ff]' aria-hidden='true' />
+                <span className='font-medium'>{currentAgent.live_status ?? 'unknown'}</span>
+                <span className='text-muted-foreground/50'>•</span>
+                <span className='truncate font-mono'>{currentAgent.runtime_id}</span>
               </div>
             </div>
           </div>
@@ -94,10 +94,10 @@ export function AgentWorkspace({
                   key={tab.id}
                   href={agentTabPath(currentAgent.runtime_id, tab.id)}
                   className={cn(
-                    'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+                    'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors',
                     active
-                      ? 'brand-gradient-surface shadow-[0_10px_24px_rgba(37,99,255,0.2)]'
-                      : 'text-muted-foreground hover:bg-card/80 hover:text-foreground hover:shadow-sm'
+                      ? 'border-border/80 bg-foreground/[0.045] text-foreground'
+                      : 'border-transparent text-muted-foreground hover:bg-foreground/[0.035] hover:text-foreground'
                   )}
                 >
                   <Icon className='h-4 w-4' />

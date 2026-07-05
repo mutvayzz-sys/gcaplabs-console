@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropOverlay } from "@/components/DropOverlay";
-import { HeadmasterMark } from "@/components/HeadmasterBrand";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessages } from "./ChatMessages";
 import { useChatContext } from "./ChatProvider";
@@ -76,11 +75,10 @@ export function ChatView() {
   }, [agents, agentId]);
 
   return (
-    <div className="brand-subtle-grid relative flex h-full min-h-0 flex-col overflow-hidden bg-background" {...att.dragHandlers}>
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-background" {...att.dragHandlers}>
       {att.dragOver && <DropOverlay label="Drop files to attach" />}
-      <div className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-20 right-10 h-80 w-80 rounded-full bg-[#ff2d8f]/10 blur-3xl" />
-      <header className="relative z-10 flex h-16 shrink-0 items-center justify-between border-b border-border/70 bg-background/82 px-6 backdrop-blur md:px-10">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,255,0.08),transparent_62%)]" />
+      <header className="relative z-10 flex h-16 shrink-0 items-center justify-between border-b border-border/70 bg-background/88 px-6 backdrop-blur md:px-10">
         <div className="min-w-0">
           <h1 className="truncate text-base font-semibold tracking-tight text-foreground">{headerTitle}</h1>
           <p className="truncate text-xs font-medium text-muted-foreground">{agentName}</p>
@@ -112,14 +110,13 @@ export function ChatView() {
         ) : messages.length > 0 ? (
           <ChatMessages messages={messages} isStreaming={isStreaming} />
         ) : (
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground shadow-sm backdrop-blur">
-              <HeadmasterMark className="h-5 w-5" />
-              Neural Core Online
-            </div>
-            <h1 className="text-[32px] font-semibold tracking-tight text-foreground sm:text-[42px]">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <h1 className="text-[32px] font-semibold tracking-tight text-foreground sm:text-[44px]">
               What can <span className="brand-gradient-text">Headmaster</span> help with?
             </h1>
+            <p className="max-w-xl text-sm text-muted-foreground">
+              Start with a goal, a file, or the messy version of what you need done.
+            </p>
           </div>
         )}
       </div>
@@ -131,7 +128,7 @@ export function ChatView() {
         {!showWelcome && (
           <div className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent" />
         )}
-        <div className={cn("mx-auto w-full", showWelcome ? "max-w-2xl" : "max-w-3xl")} aria-live="polite">
+        <div className={cn("mx-auto w-full", showWelcome ? "max-w-4xl" : "max-w-5xl")} aria-live="polite">
           {error && <p className="mb-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
         </div>
         <ChatComposer

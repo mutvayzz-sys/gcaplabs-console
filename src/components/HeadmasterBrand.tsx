@@ -53,10 +53,9 @@ export function HeadmasterLockup({ compact = false, className }: { compact?: boo
     <div className={cn("flex items-center gap-3", className)}>
       <HeadmasterMark className={compact ? "h-8 w-8" : "h-10 w-10"} />
       <div className="min-w-0">
-        <div className="font-display text-[0.92rem] font-semibold uppercase tracking-[0.28em] text-foreground">
+        <div className="font-display text-[0.92rem] font-semibold uppercase tracking-[0.24em] text-foreground">
           Headmaster<span className="brand-gradient-text tracking-[0.12em]">UI</span>
         </div>
-        {!compact && <div className="brand-gradient-text text-[0.64rem] font-semibold uppercase tracking-[0.55em]">AI Interface</div>}
       </div>
     </div>
   );
