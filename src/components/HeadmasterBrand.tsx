@@ -48,14 +48,27 @@ export function HeadmasterMark({ className }: { className?: string }) {
   );
 }
 
-export function HeadmasterLockup({ compact = false, className }: { compact?: boolean; className?: string }) {
+export function HeadmasterLockup({
+  compact = false,
+  className,
+  subtitle = false,
+}: {
+  compact?: boolean;
+  className?: string;
+  subtitle?: boolean;
+}) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <HeadmasterMark className={compact ? "h-8 w-8" : "h-10 w-10"} />
-      <div className="min-w-0">
-        <div className="font-display text-[0.92rem] font-semibold uppercase tracking-[0.24em] text-foreground">
-          Headmaster<span className="brand-gradient-text tracking-[0.12em]">UI</span>
+      <div className="min-w-0 leading-none">
+        <div className="brand-wordmark text-[1.12rem] text-foreground">
+          <span>Headmaster</span>
         </div>
+        {subtitle ? (
+          <div className="mt-2 text-[0.63rem] font-semibold uppercase tracking-[0.34em] text-muted-foreground">
+            Powered by GCAP
+          </div>
+        ) : null}
       </div>
     </div>
   );

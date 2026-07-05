@@ -48,20 +48,20 @@ export function ChatSidebar() {
   return (
     <>
       <div className="flex min-h-0 flex-1 flex-col py-3">
-        <div className="flex items-center justify-between px-3 pb-1">
+        <div className="flex items-center justify-between px-4 pb-2">
           <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Chats</span>
           <button
             type="button"
             onClick={startNewChat}
             aria-label="New chat"
             title="New chat"
-            className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+            className="brand-chip rounded-xl p-1.5 text-muted-foreground transition-all hover:text-primary"
           >
             <Plus className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-2">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3">
           {loadingSessions ? (
             <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" /> Loading...
@@ -98,10 +98,10 @@ export function ChatSidebar() {
                           onClick={() => selectSession(s.session_id)}
                           onDoubleClick={() => startRename(s.session_id, s.title)}
                           className={cn(
-                            "flex w-full select-none items-center gap-2 rounded-xl px-3 py-1.5 pr-14 text-left text-sm transition-all",
+                            "flex w-full select-none items-center gap-2 rounded-2xl px-3 py-2 pr-14 text-left text-sm transition-all",
                             highlightedSessionId === s.session_id
-                              ? "bg-primary/10 text-primary ring-1 ring-primary/15"
-                              : "text-muted-foreground hover:bg-card/80 hover:text-foreground hover:shadow-sm"
+                              ? "brand-outline-gradient text-foreground shadow-sm"
+                              : "text-muted-foreground hover:bg-white/80 hover:text-foreground hover:shadow-sm"
                           )}
                         >
                           <MessageSquare className="h-3.5 w-3.5 shrink-0" />

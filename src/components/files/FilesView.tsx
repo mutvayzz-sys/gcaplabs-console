@@ -157,10 +157,10 @@ export function FilesView({ agentId }: { agentId: string }) {
   );
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col" {...fb.dragHandlers}>
+    <div className="brand-chat-bg relative flex h-full min-h-0 flex-col" {...fb.dragHandlers}>
       {fb.dragOver && <DropOverlay label="Drop files to upload here" />}
 
-      <header className="shrink-0 border-b bg-background px-4 py-3 md:px-6 lg:px-8">
+      <header className="shrink-0 border-b bg-white/84 px-4 py-4 backdrop-blur-xl md:px-6 lg:px-8">
         <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <Button
@@ -176,7 +176,7 @@ export function FilesView({ agentId }: { agentId: string }) {
               <ArrowUp className="h-4 w-4" />
               Up
             </Button>
-            <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border bg-card px-3 shadow-sm">
+            <div className="brand-soft-card flex h-11 min-w-0 flex-1 items-center gap-2 rounded-2xl px-3">
               <Folder className="h-4 w-4 shrink-0 text-primary" />
               <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto text-sm" aria-label="Folder path">
                 {crumbs.length === 0 ? (
@@ -278,7 +278,7 @@ export function FilesView({ agentId }: { agentId: string }) {
                 onUpload={() => uploadRef.current?.click()}
               />
             ) : viewMode === "list" ? (
-              <div className="overflow-x-auto rounded-lg border bg-card">
+              <div className="brand-soft-card overflow-x-auto rounded-[24px]">
                 <table className="w-full min-w-[700px] table-fixed text-sm">
                   <colgroup>
                     <col />
@@ -342,8 +342,8 @@ export function FilesView({ agentId }: { agentId: string }) {
                       key={entry.path}
                       aria-selected={selected}
                       className={cn(
-                        "group flex min-h-44 cursor-default select-none flex-col rounded-lg border bg-card p-3 outline-none transition-colors hover:border-primary/35 hover:bg-secondary/25 focus-visible:ring-2 focus-visible:ring-ring",
-                        selected && "border-primary/35 bg-primary/10 hover:border-primary/35 hover:bg-primary/10"
+                        "group flex min-h-44 cursor-default select-none flex-col rounded-[24px] border bg-white/84 p-4 outline-none transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring",
+                        selected && "brand-outline-gradient hover:border-primary/35"
                       )}
                       {...entryHandlers(entry)}
                     >
@@ -423,7 +423,7 @@ const VIEW_MODES = [
 
 function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (value: ViewMode) => void }) {
   return (
-    <div className="inline-flex h-9 rounded-md border bg-background p-0.5" role="group" aria-label="File view">
+    <div className="inline-flex h-9 rounded-full border bg-white/80 p-0.5 shadow-sm" role="group" aria-label="File view">
       {VIEW_MODES.map(({ mode, Icon, label }) => (
         <button
           key={mode}
@@ -433,8 +433,8 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (value: Vi
           title={label}
           onClick={() => onChange(mode)}
           className={cn(
-            "inline-flex size-8 items-center justify-center rounded transition-colors",
-            value === mode ? "bg-secondary text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            "inline-flex size-8 items-center justify-center rounded-full transition-colors",
+            value === mode ? "brand-gradient-surface shadow-sm" : "text-muted-foreground hover:text-foreground"
           )}
         >
           <Icon className="h-4 w-4" />
@@ -630,7 +630,7 @@ function EmptyFolder({
   onUpload: () => void;
 }) {
   return (
-    <div className="flex min-h-[20rem] flex-col items-center justify-center rounded-lg border border-dashed bg-secondary/20 p-8 text-center">
+    <div className="brand-soft-card flex min-h-[20rem] flex-col items-center justify-center rounded-[28px] border-dashed p-8 text-center">
       <span className="mb-4 inline-flex size-12 items-center justify-center rounded-md bg-background text-primary shadow-sm">
         <Folder className="h-7 w-7" />
       </span>

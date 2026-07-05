@@ -50,8 +50,9 @@ export function RuntimeSettingsTab({
     });
 
   return (
-    <div className='mx-auto max-w-3xl space-y-6 p-8'>
-      <header className='space-y-3'>
+    <div className='brand-chat-bg h-full overflow-y-auto p-8'>
+      <div className='mx-auto max-w-4xl space-y-6'>
+      <header className='brand-soft-card space-y-3 rounded-[28px] p-6'>
         <div className='flex items-start justify-between gap-4'>
           <NameEditor agent={agent} onChanged={onChanged} />
           {isAdmin && (
@@ -120,6 +121,7 @@ export function RuntimeSettingsTab({
 
       <ShapeSection agent={agent} onChanged={onChanged} />
       <InfoSection agent={agent} />
+      </div>
     </div>
   );
 }
@@ -184,7 +186,7 @@ function ShapeSection({ agent, onChanged }: { agent: MergedAgent; onChanged?: ()
   }
 
   return (
-    <section className='rounded-lg border p-5'>
+    <section className='brand-soft-card rounded-[28px] p-5'>
       <div className='flex items-start justify-between gap-4'>
         <div>
           <h2 className='text-sm font-semibold'>Shape</h2>
@@ -207,10 +209,10 @@ function ShapeSection({ agent, onChanged }: { agent: MergedAgent; onChanged?: ()
               disabled={busy || isCurrent || (pending != null && !isPending)}
               onClick={() => pick(shape)}
               className={cn(
-                'rounded-md border p-3 text-left text-sm transition-colors',
+                'rounded-2xl border p-3 text-left text-sm transition-all',
                 isCurrent
-                  ? 'border-primary bg-primary/5 text-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground',
+                  ? 'brand-outline-gradient text-foreground shadow-sm'
+                  : 'bg-white/72 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm',
                 busy && !isPending && 'opacity-60'
               )}
             >
@@ -228,7 +230,7 @@ function ShapeSection({ agent, onChanged }: { agent: MergedAgent; onChanged?: ()
 
 function InfoSection({ agent }: { agent: MergedAgent }) {
   return (
-    <section className='overflow-hidden rounded-lg border text-sm'>
+    <section className='brand-soft-card overflow-hidden rounded-[28px] text-sm'>
       <InfoRow label='Runtime ID' value={agent.runtime_id} mono />
       <InfoRow label='Name' value={agent.name || 'Headmaster runtime'} />
       <InfoRow label='Status' value={agent.live_status || 'unknown'} />

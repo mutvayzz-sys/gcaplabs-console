@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropOverlay } from "@/components/DropOverlay";
+import { HeadmasterMark } from "@/components/HeadmasterBrand";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessages } from "./ChatMessages";
 import { useChatContext } from "./ChatProvider";
 import { useChat } from "./useChat";
 import { useChatAttachments } from "./useChatAttachments";
+
+const QUICK_PROMPTS = ["Plan my day", "Summarize latest files", "Prioritize my tasks", "Create workflow", "Search memory"];
 
 // The conversation pane, rendered full-height in the chat tab's main column. Empty state = a
 // centered welcome (heading + big composer + subtitle); once there are messages it becomes a
@@ -75,10 +78,10 @@ export function ChatView() {
   }, [agents, agentId]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-background" {...att.dragHandlers}>
+    <div className="brand-chat-bg relative flex h-full min-h-0 flex-col overflow-hidden" {...att.dragHandlers}>
       {att.dragOver && <DropOverlay label="Drop files to attach" />}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_50%_0%,rgba(37,99,255,0.08),transparent_62%)]" />
-      <header className="relative z-10 flex h-16 shrink-0 items-center justify-between border-b border-border/70 bg-background/88 px-6 backdrop-blur md:px-10">
+      <header className="relative z-10 flex h-20 shrink-0 items-center justify-between border-b border-border/70 bg-white/84 px-6 backdrop-blur-xl md:px-10">
         <div className="min-w-0">
           <h1 className="truncate text-base font-semibold tracking-tight text-foreground">{headerTitle}</h1>
           <p className="truncate text-xs font-medium text-muted-foreground">{agentName}</p>
@@ -88,7 +91,7 @@ export function ChatView() {
           onClick={startNewChat}
           aria-label="New chat"
           title="New chat"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+          className="brand-chip inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-all hover:text-primary"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -110,20 +113,35 @@ export function ChatView() {
         ) : messages.length > 0 ? (
           <ChatMessages messages={messages} isStreaming={isStreaming} />
         ) : (
-          <div className="flex flex-col items-center gap-3 text-center">
-            <h1 className="text-[32px] font-semibold tracking-tight text-foreground sm:text-[44px]">
+          <div className="flex flex-col items-center gap-5 text-center">
+            <div className="brand-soft-card inline-flex items-center gap-2 rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.36em] text-muted-foreground">
+              <HeadmasterMark className="h-5 w-5" />
+              Neural Core Online
+            </div>
+            <h1 className="text-[32px] font-semibold tracking-tight text-foreground sm:text-[48px]">
               What can <span className="brand-gradient-text">Headmaster</span> help with?
             </h1>
-            <p className="max-w-xl text-sm text-muted-foreground">
-              Start with a goal, a file, or the messy version of what you need done.
-            </p>
+            <div className="flex max-w-3xl flex-wrap items-center justify-center gap-2">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  disabled={isStreaming || loadingHistory}
+                  onClick={() => send(prompt)}
+                  className="brand-chip inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition-transform disabled:opacity-50"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
 
       {/* Composer wrapper — the STABLE 2nd child. Its chrome (docked vs bare centered) is a
           className swap so the ChatComposer inside never changes tree position. */}
-      <div className={cn("relative z-10", showWelcome ? "w-full px-6 md:px-10" : "bg-background/88 px-6 py-3 backdrop-blur md:px-10 sm:py-4")}>
+      <div className={cn("relative z-10", showWelcome ? "w-full px-6 md:px-10" : "bg-white/84 px-6 py-3 backdrop-blur-xl md:px-10 sm:py-4")}>
         {/* No hard divider — a short fade dissolves the transcript into the composer instead. */}
         {!showWelcome && (
           <div className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent" />

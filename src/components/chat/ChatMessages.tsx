@@ -14,7 +14,7 @@ function MessageAttachments({ attachments }: { attachments: MessageAttachment[] 
         <span
           key={`${a.path}-${k}`}
           title={a.name}
-          className="flex items-center gap-1.5 rounded-lg border bg-secondary/60 px-2 py-1 text-xs text-foreground"
+          className="brand-chip flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs text-foreground"
         >
           {a.isImage ? (
             <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
@@ -54,8 +54,8 @@ function ToolChip({ tool }: { tool: ToolEvent }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs",
-        tool.status === "error" ? "border-destructive/40 text-destructive" : "border-border text-muted-foreground"
+        "flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs shadow-sm",
+        tool.status === "error" ? "border-destructive/40 bg-destructive/5 text-destructive" : "brand-status-processing text-muted-foreground"
       )}
     >
       <Wrench className="h-3.5 w-3.5 shrink-0" />
@@ -84,7 +84,7 @@ function TypingDots() {
 
 export function ChatMessages({ messages, isStreaming }: { messages: ChatMessage[]; isStreaming: boolean }) {
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 px-5 py-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6 px-5 py-8">
       {messages.map((m, i) => {
         if (m.role === "user") {
           const attachments = m.attachments ?? [];
@@ -93,7 +93,7 @@ export function ChatMessages({ messages, isStreaming }: { messages: ChatMessage[
               <div className="flex max-w-[85%] flex-col items-end gap-1.5">
                 {attachments.length > 0 && <MessageAttachments attachments={attachments} />}
                 {m.content && (
-                  <div className="whitespace-pre-wrap break-words rounded-[18px] bg-secondary px-3.5 py-2 text-sm text-foreground">
+                  <div className="whitespace-pre-wrap break-words rounded-[20px] bg-[#0D0F14] px-4 py-2.5 text-sm text-white shadow-[0_14px_34px_rgba(13,15,20,0.12)]">
                     {m.content}
                   </div>
                 )}

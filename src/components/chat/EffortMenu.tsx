@@ -23,7 +23,7 @@ export function EffortMenu({ value, disabled, onChange }: Props) {
         <button
           type="button"
           disabled={disabled}
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/80 bg-background px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-foreground/[0.035] hover:text-foreground disabled:opacity-50"
+          className="brand-chip inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-semibold transition-transform disabled:opacity-50"
         >
           <span className="text-muted-foreground/70">Effort</span>
           <span>{value ? REASONING_LABELS[value] : "Default"}</span>

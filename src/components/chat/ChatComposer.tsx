@@ -78,7 +78,7 @@ export function ChatComposer({ agentId, isStreaming, att, onSend, onStop, large 
   return (
     <div
       className={cn(
-        "brand-composer mx-auto w-full rounded-2xl transition-[border-color,box-shadow]",
+        "brand-composer mx-auto w-full rounded-[28px] transition-[border-color,box-shadow]",
         large ? "max-w-4xl" : "max-w-5xl"
       )}
     >
@@ -125,7 +125,7 @@ export function ChatComposer({ agentId, isStreaming, att, onSend, onStop, large 
               onClick={onStop}
               aria-label="Stop response"
               title="Stop response"
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-opacity hover:opacity-80"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition-opacity hover:opacity-80"
             >
               <Square className="h-3 w-3" fill="currentColor" strokeWidth={0} />
             </button>
@@ -136,7 +136,7 @@ export function ChatComposer({ agentId, isStreaming, att, onSend, onStop, large 
               disabled={!canSend}
               aria-label="Send message"
               title="Send message"
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background shadow-sm transition-opacity hover:opacity-85 disabled:opacity-35"
+              className="brand-gradient-surface inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full shadow-[0_12px_26px_rgba(37,99,255,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(255,45,143,0.18)] disabled:translate-y-0 disabled:opacity-35"
             >
               {att.uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
             </button>

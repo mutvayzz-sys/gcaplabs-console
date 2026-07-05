@@ -127,8 +127,8 @@ export default function LoginPage() {
 
   if (devAuthBypass) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-6">
-        <div className="rounded-lg border bg-card p-6 text-center text-sm text-muted-foreground">
+      <main className="openwebui-login-bg flex min-h-screen items-center justify-center px-6">
+        <div className="login-glass-card rounded-[28px] p-6 text-center text-sm text-muted-foreground">
           Opening the local dev console...
         </div>
       </main>
@@ -136,8 +136,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-6 rounded-[28px] border border-border/70 bg-card/82 p-7 shadow-[0_24px_80px_rgba(13,15,20,0.08)] backdrop-blur">
+    <main className="openwebui-login-bg flex min-h-screen items-center justify-center px-6 py-10">
+      <div className="openwebui-chrome" aria-hidden="true" />
+      <div className="openwebui-sidebar-lines" aria-hidden="true" />
+      <div className="openwebui-chat-lines" aria-hidden="true" />
+      <div className="openwebui-composer-preview" aria-hidden="true" />
+      <div className="login-glass-card relative z-10 w-full max-w-sm space-y-6 rounded-[30px] p-7">
         <div className="flex flex-col items-center space-y-3 text-center">
           <HeadmasterLockup />
           <h1 className="sr-only">{branding.appName}</h1>

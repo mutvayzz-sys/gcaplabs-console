@@ -22,9 +22,9 @@ export function AccountMenu({ userEmail, caption = "Headmaster Console" }: { use
     <div className="space-y-2">
       <Link
         href="/dashboard/settings"
-        className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-secondary"
+        className="flex min-w-0 items-center gap-2 rounded-2xl px-2 py-1.5 transition-colors hover:bg-white/80"
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-medium text-secondary-foreground">
+        <span className="brand-gradient-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold shadow-sm">
           {initial}
         </span>
         <span className="min-w-0">
@@ -32,7 +32,7 @@ export function AccountMenu({ userEmail, caption = "Headmaster Console" }: { use
           {caption ? <span className="block truncate text-xs text-muted-foreground">{caption}</span> : null}
         </span>
       </Link>
-      <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground" onClick={signOut}>
+      <Button variant="ghost" className="w-full justify-start gap-2 rounded-2xl text-muted-foreground hover:bg-white/80 hover:text-foreground" onClick={signOut}>
         <LogOut className="h-4 w-4" />
         Sign out
       </Button>
