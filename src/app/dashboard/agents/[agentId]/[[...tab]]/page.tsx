@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { AgentWorkspace } from "@/components/AgentWorkspace";
 import { RuntimeApiError } from "@/lib/managed-runtime";
-import { getSession } from "@/lib/auth";
+import { getSession, isConsoleAdmin } from "@/lib/auth";
 import { MANAGED_AGENT_ID, getManagedAgent } from "@/lib/managed-agent";
 import { parseAgentTab } from "@/lib/dashboard-tabs";
 
@@ -21,7 +21,8 @@ export default async function AgentPage({
 
   try {
     const [{ user }, { agent }] = await Promise.all([getSession(), getManagedAgent()]);
-    return <AgentWorkspace agent={agent} activeTab={activeTab} userEmail={user?.email ?? null} />;
+    const isAdmin = user ? await isConsoleAdmin(user.id) : false;
+    return <AgentWorkspace agent={agent} activeTab={activeTab} userEmail={user?.email ?? null} isAdmin={isAdmin} />;
   } catch (e) {
     if (e instanceof RuntimeApiError && e.code === "not_approved") {
       return (

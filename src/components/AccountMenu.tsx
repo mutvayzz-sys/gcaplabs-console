@@ -1,11 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { LogOut, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
-export function AccountMenu({ userEmail, caption = "Headmaster Console" }: { userEmail: string; caption?: string }) {
+export function AccountMenu({
+  userEmail,
+  caption = "Headmaster Console",
+  isAdmin = false,
+}: {
+  userEmail: string;
+  caption?: string;
+  isAdmin?: boolean;
+}) {
   const initial = (userEmail.trim()[0] ?? "?").toUpperCase();
 
   async function signOut() {
@@ -32,6 +40,15 @@ export function AccountMenu({ userEmail, caption = "Headmaster Console" }: { use
           {caption ? <span className="block truncate text-xs text-muted-foreground">{caption}</span> : null}
         </span>
       </Link>
+      {isAdmin ? (
+        <Link
+          href="/dashboard/admin/users"
+          className="flex items-center gap-2 rounded-2xl px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/80 hover:text-foreground"
+        >
+          <Shield className="h-4 w-4 text-primary" />
+          Console admin
+        </Link>
+      ) : null}
       <Button variant="ghost" className="w-full justify-start gap-2 rounded-2xl text-muted-foreground hover:bg-white/80 hover:text-foreground" onClick={signOut}>
         <LogOut className="h-4 w-4" />
         Sign out

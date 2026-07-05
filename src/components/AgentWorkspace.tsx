@@ -45,10 +45,12 @@ export function AgentWorkspace({
   agent,
   activeTab,
   userEmail,
+  isAdmin = false,
 }: {
   agent: MergedAgent;
   activeTab: AgentTab;
   userEmail?: string | null;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -167,7 +169,7 @@ export function AgentWorkspace({
 
           {userEmail ? (
             <div className='mt-auto border-t border-border/70 p-3'>
-              <AccountMenu userEmail={userEmail} caption='' />
+              <AccountMenu userEmail={userEmail} isAdmin={isAdmin} caption='' />
             </div>
           ) : null}
         </aside>
