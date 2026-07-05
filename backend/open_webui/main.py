@@ -149,6 +149,8 @@ from open_webui.routers import (
     folders,
     functions,
     groups,
+    headmaster_admin_bff,
+    headmaster_bff,
     images,
     knowledge,
     memories,
@@ -723,9 +725,14 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+app.add_middleware(headmaster_bff.HeadmasterDesktopV1ProxyMiddleware)
 
 
 app.mount('/ws', socket_app)
+
+
+app.include_router(headmaster_bff.router, tags=['headmaster-bff'])
+app.include_router(headmaster_admin_bff.router, tags=['headmaster-admin-bff'])
 
 
 app.include_router(ollama.router, prefix='/ollama', tags=['ollama'])

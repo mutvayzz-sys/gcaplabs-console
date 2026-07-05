@@ -1062,7 +1062,7 @@
 							Headmaster
 						</div>
 						<div class="mt-1 text-[0.62rem] font-medium text-gray-500 dark:text-gray-500">
-							Open WebUI
+							Console
 						</div>
 					</div>
 				</a>

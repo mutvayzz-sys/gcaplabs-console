@@ -124,7 +124,7 @@
 					<div class="headmaster-sidebar-brand mt-3 text-xs font-semibold text-gray-950 dark:text-white">
 						Headmaster
 					</div>
-					<div class="mt-1 text-xs text-gray-500 dark:text-gray-500">Open WebUI workspace</div>
+					<div class="mt-1 text-xs text-gray-500 dark:text-gray-500">Headmaster workspace</div>
 				</div>
 
 				<div class="flex flex-row justify-center gap-2.5 @sm:gap-3 w-fit px-5 max-w-xl">

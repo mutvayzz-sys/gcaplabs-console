@@ -309,10 +309,10 @@
 					} else {
 						return e.name;
 					}
-				}, '')} • Open WebUI</title
+				}, '')} • Headmaster Console</title
 		>
 	{:else}
-		<title>#{channel?.name ?? 'Channel'} • Open WebUI</title>
+		<title>#{channel?.name ?? 'Channel'} • Headmaster Console</title>
 	{/if}
 </svelte:head>
 

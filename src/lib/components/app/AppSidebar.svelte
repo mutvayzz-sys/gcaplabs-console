@@ -41,9 +41,9 @@
 				<div class="my-auto rounded-r-lg w-1 h-8 headmaster-primary-button"></div>
 			</div>
 		{/if}
-		<Tooltip content="Open WebUI chat" placement="right">
+		<Tooltip content="Headmaster chat" placement="right">
 			<button
-				aria-label="Open WebUI chat"
+				aria-label="Headmaster chat"
 				class="cursor-pointer bg-transparent {selected === '' ? 'rounded-2xl' : 'rounded-full'}"
 				on:click={() => {
 					selected = '';
