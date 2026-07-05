@@ -73,7 +73,14 @@ async def admin_list_users(request: Request) -> JSONResponse:
             count_query += f'&or=(email.ilike.*{encoded}*,display_name.ilike.*{encoded}*)'
         users = await supabase_rest('profiles', query=query)
         total_rows = await supabase_rest('profiles', query=count_query)
-        return JSONResponse({'users': users if isinstance(users, list) else [], 'total': len(total_rows) if isinstance(total_rows, list) else 0, 'page': page, 'pageSize': page_size})
+        return JSONResponse(
+            {
+                'users': users if isinstance(users, list) else [],
+                'total': len(total_rows) if isinstance(total_rows, list) else 0,
+                'page': page,
+                'pageSize': page_size,
+            }
+        )
     except Exception as exc:
         return json_error(exc)
 
@@ -132,12 +139,17 @@ async def admin_mutate_user_runtime(user_id: str, request: Request) -> JSONRespo
                 raise BffError(400, 'invalid_request', f'action must be one of {", ".join(sorted(RUNTIME_ACTIONS))}')
             if action == 'delete':
                 await runtime_control_call(f'/instances/{quote(runtime_id)}', method='DELETE')
-                await update_profile(user_id, {'runtime_id': None, 'runtime_status': None, 'runtime_name': None, 'runtime_template': None})
+                await update_profile(
+                    user_id,
+                    {'runtime_id': None, 'runtime_status': None, 'runtime_name': None, 'runtime_template': None},
+                )
                 return JSONResponse({'ok': True, 'deleted': True})
             endpoint = 'update' if action == 'update' else action
             await runtime_control_call(f'/instances/{quote(runtime_id)}/{endpoint}', method='POST')
             instance = await runtime_control_call(f'/instances/{quote(runtime_id)}')
-            await update_profile(user_id, {'runtime_status': instance.get('status'), 'runtime_name': instance.get('name')})
+            await update_profile(
+                user_id, {'runtime_status': instance.get('status'), 'runtime_name': instance.get('name')}
+            )
             return JSONResponse({'ok': True, 'instance': instance})
 
         if isinstance(body.get('monthly_cap_micros'), (int, float)):
@@ -152,7 +164,9 @@ async def admin_mutate_user_runtime(user_id: str, request: Request) -> JSONRespo
             name = body['name'].strip()
             if not name:
                 raise BffError(400, 'invalid_request', 'name cannot be empty')
-            instance = await runtime_control_call(f'/instances/{quote(runtime_id)}', method='PATCH', body={'name': name})
+            instance = await runtime_control_call(
+                f'/instances/{quote(runtime_id)}', method='PATCH', body={'name': name}
+            )
             await update_profile(user_id, {'runtime_name': instance.get('name')})
             return JSONResponse({'ok': True, 'instance': instance})
 
@@ -291,7 +305,11 @@ async def admin_list_messages(request: Request) -> JSONResponse:
         await require_console_admin(request)
         messages = await supabase_rest('messages', query='select=*&order=created_at.desc')
         profiles = await supabase_rest('profiles', query='select=id,email')
-        email_by_id = {row.get('id'): row.get('email') for row in profiles if isinstance(row, dict)} if isinstance(profiles, list) else {}
+        email_by_id = (
+            {row.get('id'): row.get('email') for row in profiles if isinstance(row, dict)}
+            if isinstance(profiles, list)
+            else {}
+        )
         if isinstance(messages, list):
             for message in messages:
                 if isinstance(message, dict):
@@ -309,7 +327,13 @@ async def admin_mark_message_read(request: Request) -> JSONResponse:
         message_id = str(body.get('id') or '').strip()
         if not message_id:
             raise BffError(400, 'invalid_request', 'id is required')
-        await supabase_rest('messages', method='PATCH', query=f'id=eq.{quote(message_id)}', body={'read_by_admin': True}, prefer='return=minimal')
+        await supabase_rest(
+            'messages',
+            method='PATCH',
+            query=f'id=eq.{quote(message_id)}',
+            body={'read_by_admin': True},
+            prefer='return=minimal',
+        )
         return JSONResponse({'ok': True})
     except Exception as exc:
         return json_error(exc)
@@ -343,7 +367,9 @@ async def admin_list_organizations(request: Request) -> JSONResponse:
                     counts[str(org_id)] = counts.get(str(org_id), 0) + 1
         result = []
         if isinstance(orgs, list):
-            result = [{**org, 'member_count': counts.get(str(org.get('id')), 0)} for org in orgs if isinstance(org, dict)]
+            result = [
+                {**org, 'member_count': counts.get(str(org.get('id')), 0)} for org in orgs if isinstance(org, dict)
+            ]
         return JSONResponse({'organizations': result})
     except Exception as exc:
         return json_error(exc)
@@ -383,7 +409,9 @@ async def admin_create_organization(request: Request) -> JSONResponse:
 async def admin_list_org_members(org_id: str, request: Request) -> JSONResponse:
     try:
         await require_console_admin(request)
-        users = await supabase_rest('profiles', query=f'select={PROFILE_COLUMNS}&organization_id=eq.{quote(org_id)}&order=created_at.desc')
+        users = await supabase_rest(
+            'profiles', query=f'select={PROFILE_COLUMNS}&organization_id=eq.{quote(org_id)}&order=created_at.desc'
+        )
         return JSONResponse({'users': users if isinstance(users, list) else []})
     except Exception as exc:
         return json_error(exc)

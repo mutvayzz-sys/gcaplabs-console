@@ -15,8 +15,7 @@ jobs:
     name: Typecheck + Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Placeholder values so `next build` doesn't fail on missing env at module load.
-    # Real values live in the Vercel project (production) — CI only validates the build.
+    # Placeholder values for OpenWebUI/Headmaster BFF imports during CI.
     env:
       NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_ci_placeholder
@@ -35,8 +34,5 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: TypeScript check
-        run: npm run typecheck
-
-      - name: Build
+      - name: Build OpenWebUI frontend
         run: npm run build

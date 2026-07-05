@@ -149,7 +149,9 @@ async def supabase_sign_in(email: str, password: str) -> dict[str, Any]:
     headers = {'apikey': supabase_anon_key(), 'Content-Type': 'application/json'}
     payload = {'email': email, 'password': password}
     async with aiohttp.ClientSession() as session:
-        async with session.post(f'{supabase_url()}/auth/v1/token?grant_type=password', headers=headers, json=payload) as resp:
+        async with session.post(
+            f'{supabase_url()}/auth/v1/token?grant_type=password', headers=headers, json=payload
+        ) as resp:
             data = await parse_json_response(resp)
             if resp.status >= 400 or not isinstance(data, dict) or not data.get('access_token'):
                 message = data.get('msg') or data.get('message') if isinstance(data, dict) else None
@@ -181,31 +183,49 @@ async def get_profile(user: SupabaseUser) -> dict[str, Any] | None:
         async with session.get(url, headers=service_headers()) as resp:
             data = await parse_json_response(resp)
             if resp.status >= 400:
-                raise BffError(500, 'db_error', data.get('message', 'Profile lookup failed') if isinstance(data, dict) else 'Profile lookup failed')
+                raise BffError(
+                    500,
+                    'db_error',
+                    data.get('message', 'Profile lookup failed') if isinstance(data, dict) else 'Profile lookup failed',
+                )
             if isinstance(data, list) and data:
                 return data[0]
             return None
 
 
 async def upsert_profile(values: dict[str, Any]) -> None:
-    headers = service_headers({
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal',
-    })
+    headers = service_headers(
+        {
+            'Content-Type': 'application/json',
+            'Prefer': 'resolution=merge-duplicates,return=minimal',
+        }
+    )
     async with aiohttp.ClientSession() as session:
-        async with session.post(f'{supabase_url()}/rest/v1/profiles?on_conflict=id', headers=headers, json=values) as resp:
+        async with session.post(
+            f'{supabase_url()}/rest/v1/profiles?on_conflict=id', headers=headers, json=values
+        ) as resp:
             if resp.status >= 400:
                 data = await parse_json_response(resp)
-                raise BffError(500, 'db_error', data.get('message', 'Profile update failed') if isinstance(data, dict) else 'Profile update failed')
+                raise BffError(
+                    500,
+                    'db_error',
+                    data.get('message', 'Profile update failed') if isinstance(data, dict) else 'Profile update failed',
+                )
 
 
 async def update_profile(user_id: str, values: dict[str, Any]) -> None:
     headers = service_headers({'Content-Type': 'application/json', 'Prefer': 'return=minimal'})
     async with aiohttp.ClientSession() as session:
-        async with session.patch(f'{supabase_url()}/rest/v1/profiles?id=eq.{quote(user_id)}', headers=headers, json=values) as resp:
+        async with session.patch(
+            f'{supabase_url()}/rest/v1/profiles?id=eq.{quote(user_id)}', headers=headers, json=values
+        ) as resp:
             if resp.status >= 400:
                 data = await parse_json_response(resp)
-                raise BffError(500, 'db_error', data.get('message', 'Profile update failed') if isinstance(data, dict) else 'Profile update failed')
+                raise BffError(
+                    500,
+                    'db_error',
+                    data.get('message', 'Profile update failed') if isinstance(data, dict) else 'Profile update failed',
+                )
 
 
 async def supabase_rest(
@@ -235,7 +255,9 @@ async def get_profile_by_id(user_id: str, columns: str = PROFILE_COLUMNS) -> dic
 
 
 async def is_console_admin(user: SupabaseUser) -> bool:
-    if not (os.getenv('NEXT_PUBLIC_SUPABASE_URL') or os.getenv('SUPABASE_URL')) or not os.getenv('SUPABASE_SERVICE_ROLE_KEY'):
+    if not (os.getenv('NEXT_PUBLIC_SUPABASE_URL') or os.getenv('SUPABASE_URL')) or not os.getenv(
+        'SUPABASE_SERVICE_ROLE_KEY'
+    ):
         return os.getenv('NODE_ENV') != 'production'
     profile = await get_profile_by_id(user.id, 'is_admin')
     return bool(profile and profile.get('is_admin') is True)
@@ -313,10 +335,14 @@ async def runtime_control_call(path: str, method: str = 'GET', body: dict[str, A
             return data
 
 
-async def instance_json_call(runtime_id: str, path: str, method: str = 'GET', body: dict[str, Any] | None = None) -> Any:
+async def instance_json_call(
+    runtime_id: str, path: str, method: str = 'GET', body: dict[str, Any] | None = None
+) -> Any:
     headers = {'Authorization': f'Bearer {runtime_api_key()}', 'Content-Type': 'application/json'}
     async with aiohttp.ClientSession() as session:
-        async with session.request(method, f'{instance_base_url(runtime_id)}{path}', headers=headers, json=body) as resp:
+        async with session.request(
+            method, f'{instance_base_url(runtime_id)}{path}', headers=headers, json=body
+        ) as resp:
             data = await parse_json_response(resp)
             if resp.status >= 400:
                 message = data.get('message') if isinstance(data, dict) else None
@@ -357,15 +383,17 @@ async def get_current_runtime(user: SupabaseUser) -> tuple[str, dict[str, Any]]:
         create_body['budget'] = {'credit_micros': DEFAULT_CREDIT_MICROS}
     instance = await runtime_control_call('/instances', method='POST', body=create_body)
     runtime_id = str(instance['id'])
-    await upsert_profile({
-        'id': user.id,
-        'email': email,
-        'display_name': display_name,
-        'runtime_id': runtime_id,
-        'runtime_status': instance.get('status'),
-        'runtime_name': instance.get('name'),
-        'runtime_template': instance.get('template'),
-    })
+    await upsert_profile(
+        {
+            'id': user.id,
+            'email': email,
+            'display_name': display_name,
+            'runtime_id': runtime_id,
+            'runtime_status': instance.get('status'),
+            'runtime_name': instance.get('name'),
+            'runtime_template': instance.get('template'),
+        }
+    )
     return runtime_id, instance
 
 
@@ -440,13 +468,15 @@ async def login(request: Request) -> JSONResponse:
         if not email or not password:
             raise BffError(400, 'invalid_request', 'email/username and password are required')
         data = await supabase_sign_in(email, password)
-        return JSONResponse({
-            'access_token': data.get('access_token'),
-            'refresh_token': data.get('refresh_token'),
-            'token_type': 'bearer',
-            'expires_in': data.get('expires_in'),
-            'user': data.get('user'),
-        })
+        return JSONResponse(
+            {
+                'access_token': data.get('access_token'),
+                'refresh_token': data.get('refresh_token'),
+                'token_type': 'bearer',
+                'expires_in': data.get('expires_in'),
+                'user': data.get('user'),
+            }
+        )
     except Exception as exc:
         return json_error(exc)
 
@@ -464,13 +494,15 @@ async def register(request: Request) -> JSONResponse:
         data = await supabase_sign_up(email, password)
         if not data.get('access_token'):
             return JSONResponse({'confirmation_required': True, 'user': data.get('user')})
-        return JSONResponse({
-            'access_token': data.get('access_token'),
-            'refresh_token': data.get('refresh_token'),
-            'token_type': 'bearer',
-            'expires_in': data.get('expires_in'),
-            'user': data.get('user'),
-        })
+        return JSONResponse(
+            {
+                'access_token': data.get('access_token'),
+                'refresh_token': data.get('refresh_token'),
+                'token_type': 'bearer',
+                'expires_in': data.get('expires_in'),
+                'user': data.get('user'),
+            }
+        )
     except Exception as exc:
         return json_error(exc)
 
@@ -513,12 +545,17 @@ async def validate_runtime(request: Request) -> Response:
         await require_user(request)
         body = await request.json() if request.headers.get('content-type', '').startswith('application/json') else {}
         requested = body.get('requested_capability') if isinstance(body, dict) else None
-        return with_desktop_cors(JSONResponse({
-            'allowed': not requested or requested in DESKTOP_CAPABILITIES,
-            'capabilities': DESKTOP_CAPABILITIES,
-            'role': 'user',
-            'ttl_seconds': 300,
-        }), request)
+        return with_desktop_cors(
+            JSONResponse(
+                {
+                    'allowed': not requested or requested in DESKTOP_CAPABILITIES,
+                    'capabilities': DESKTOP_CAPABILITIES,
+                    'role': 'user',
+                    'ttl_seconds': 300,
+                }
+            ),
+            request,
+        )
     except Exception as exc:
         return with_desktop_cors(json_error(exc), request)
 
@@ -544,7 +581,10 @@ async def list_integration_toolkits(request: Request) -> Response:
         data = await runtime_control_call(f'/instances/{quote(runtime_id)}/integrations/toolkits?{"&".join(params)}')
         items = data.get('items') if isinstance(data, dict) else []
         next_cursor = data.get('nextCursor') if isinstance(data, dict) else None
-        return with_desktop_cors(JSONResponse({'toolkits': items if isinstance(items, list) else [], 'nextCursor': next_cursor or None}), request)
+        return with_desktop_cors(
+            JSONResponse({'toolkits': items if isinstance(items, list) else [], 'nextCursor': next_cursor or None}),
+            request,
+        )
     except Exception as exc:
         return with_desktop_cors(json_error(exc), request)
 
@@ -558,7 +598,9 @@ async def list_integration_connections(request: Request) -> Response:
         runtime_id, _instance = await get_current_runtime(user)
         data = await runtime_control_call(f'/instances/{quote(runtime_id)}/integrations/connections')
         connections = data.get('connections') if isinstance(data, dict) else []
-        return with_desktop_cors(JSONResponse({'connections': connections if isinstance(connections, list) else []}), request)
+        return with_desktop_cors(
+            JSONResponse({'connections': connections if isinstance(connections, list) else []}), request
+        )
     except Exception as exc:
         return with_desktop_cors(json_error(exc), request)
 
@@ -577,10 +619,15 @@ async def connect_integration_toolkit(request: Request) -> Response:
             method='POST',
             body={'toolkit': toolkit},
         )
-        return with_desktop_cors(JSONResponse({
-            'redirectUrl': data.get('redirectUrl') if isinstance(data, dict) else None,
-            'connectedAccountId': data.get('connectedAccountId') if isinstance(data, dict) else None,
-        }), request)
+        return with_desktop_cors(
+            JSONResponse(
+                {
+                    'redirectUrl': data.get('redirectUrl') if isinstance(data, dict) else None,
+                    'connectedAccountId': data.get('connectedAccountId') if isinstance(data, dict) else None,
+                }
+            ),
+            request,
+        )
     except Exception as exc:
         return with_desktop_cors(json_error(exc), request)
 
@@ -690,7 +737,7 @@ class HeadmasterDesktopV1ProxyMiddleware:
     ) -> Response:
         method = scope.get('method') or 'GET'
         query = scope.get('query_string', b'').decode('latin1')
-        suffix = path[len('/api/v1/'):]
+        suffix = path[len('/api/v1/') :]
         upstream_url = f'{instance_base_url(runtime_id)}/v1/{suffix}' + (f'?{query}' if query else '')
         body = None if method in {'GET', 'HEAD'} else await self._read_body(receive)
         forward_headers = {
@@ -722,10 +769,12 @@ class HeadmasterDesktopV1ProxyMiddleware:
 
 @router.get('/api/headmaster/bff/health')
 async def bff_health() -> JSONResponse:
-    configured = all([
-        os.getenv('NEXT_PUBLIC_SUPABASE_URL') or os.getenv('SUPABASE_URL'),
-        os.getenv('NEXT_PUBLIC_SUPABASE_ANON_KEY') or os.getenv('SUPABASE_ANON_KEY'),
-        os.getenv('SUPABASE_SERVICE_ROLE_KEY'),
-        os.getenv('RUNTIME_API_KEY') or os.getenv(LEGACY_KEY_ENV),
-    ])
+    configured = all(
+        [
+            os.getenv('NEXT_PUBLIC_SUPABASE_URL') or os.getenv('SUPABASE_URL'),
+            os.getenv('NEXT_PUBLIC_SUPABASE_ANON_KEY') or os.getenv('SUPABASE_ANON_KEY'),
+            os.getenv('SUPABASE_SERVICE_ROLE_KEY'),
+            os.getenv('RUNTIME_API_KEY') or os.getenv(LEGACY_KEY_ENV),
+        ]
+    )
     return JSONResponse({'ok': True, 'configured': configured, 'ts': int(time.time())})

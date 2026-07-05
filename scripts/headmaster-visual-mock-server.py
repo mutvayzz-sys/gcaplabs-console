@@ -40,6 +40,7 @@ USER = {
     'permissions': {'chat': {'temporary': True, 'import': True}},
 }
 
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args) -> None:
         print('%s - %s' % (self.address_string(), fmt % args))
@@ -112,6 +113,7 @@ class Handler(BaseHTTPRequestHandler):
         if path in {'/api/v1/auths/signin', '/api/v1/auths/signup'}:
             return self._json(USER)
         return self._json({'ok': True})
+
 
 if __name__ == '__main__':
     server = ThreadingHTTPServer(('127.0.0.1', 5051), Handler)
