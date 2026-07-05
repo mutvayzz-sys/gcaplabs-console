@@ -23,7 +23,7 @@ export function EffortMenu({ value, disabled, onChange }: Props) {
         <button
           type="button"
           disabled={disabled}
-          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[#7c3aed]/10 bg-[#7c3aed]/5 px-3 text-xs font-semibold text-[#7c3aed] transition-colors hover:bg-[#7c3aed]/10 disabled:opacity-50"
         >
           <Zap className="h-3.5 w-3.5 shrink-0" />
           <span>{value ? REASONING_LABELS[value] : "Effort"}</span>

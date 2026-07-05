@@ -41,7 +41,7 @@ export function ModelMenu({ groups, model, defaultModel, defaultLabel, disabled,
           type="button"
           disabled={disabled}
           title={`Model: ${label}`}
-          className="inline-flex h-8 max-w-[12rem] items-center gap-1.5 rounded-full bg-secondary/70 px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-50"
+          className="inline-flex h-8 max-w-[12rem] items-center gap-1.5 rounded-full border border-primary/10 bg-primary/5 px-3 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
         >
           <Sparkles className="h-3.5 w-3.5 shrink-0" />
           <span className="truncate">{label}</span>

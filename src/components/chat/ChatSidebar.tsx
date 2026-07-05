@@ -49,13 +49,13 @@ export function ChatSidebar() {
     <>
       <div className="flex min-h-0 flex-1 flex-col py-3">
         <div className="flex items-center justify-between px-3 pb-1">
-          <span className="text-xs font-medium text-muted-foreground">Chats</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Chats</span>
           <button
             type="button"
             onClick={startNewChat}
             aria-label="New chat"
             title="New chat"
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -89,7 +89,7 @@ export function ChatSidebar() {
                           commitRename(s.session_id, s.title);
                         }}
                         aria-label="Chat name"
-                        className="w-full rounded-md bg-secondary px-3 py-1.5 text-sm text-foreground outline-none ring-1 ring-ring"
+                        className="w-full rounded-xl bg-secondary px-3 py-1.5 text-sm text-foreground outline-none ring-1 ring-ring"
                       />
                     ) : (
                       <>
@@ -98,10 +98,10 @@ export function ChatSidebar() {
                           onClick={() => selectSession(s.session_id)}
                           onDoubleClick={() => startRename(s.session_id, s.title)}
                           className={cn(
-                            "flex w-full select-none items-center gap-2 rounded-md px-3 py-1.5 pr-14 text-left text-sm transition-colors",
+                            "flex w-full select-none items-center gap-2 rounded-xl px-3 py-1.5 pr-14 text-left text-sm transition-all",
                             highlightedSessionId === s.session_id
-                              ? "bg-secondary text-foreground"
-                              : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                              ? "bg-primary/10 text-primary ring-1 ring-primary/15"
+                              : "text-muted-foreground hover:bg-card/80 hover:text-foreground hover:shadow-sm"
                           )}
                         >
                           <MessageSquare className="h-3.5 w-3.5 shrink-0" />

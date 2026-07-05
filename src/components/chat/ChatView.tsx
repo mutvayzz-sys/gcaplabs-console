@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropOverlay } from "@/components/DropOverlay";
+import { HeadmasterMark } from "@/components/HeadmasterBrand";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessages } from "./ChatMessages";
 import { useChatContext } from "./ChatProvider";
@@ -75,19 +76,21 @@ export function ChatView() {
   }, [agents, agentId]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col" {...att.dragHandlers}>
+    <div className="brand-subtle-grid relative flex h-full min-h-0 flex-col overflow-hidden bg-background" {...att.dragHandlers}>
       {att.dragOver && <DropOverlay label="Drop files to attach" />}
-      <header className="flex h-16 shrink-0 items-center justify-between border-b bg-background px-6 md:px-10">
+      <div className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-20 right-10 h-80 w-80 rounded-full bg-[#ff2d8f]/10 blur-3xl" />
+      <header className="relative z-10 flex h-16 shrink-0 items-center justify-between border-b border-border/70 bg-background/82 px-6 backdrop-blur md:px-10">
         <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold text-foreground">{headerTitle}</h1>
-          <p className="truncate text-xs text-muted-foreground">{agentName}</p>
+          <h1 className="truncate text-base font-semibold tracking-tight text-foreground">{headerTitle}</h1>
+          <p className="truncate text-xs font-medium text-muted-foreground">{agentName}</p>
         </div>
         <button
           type="button"
           onClick={startNewChat}
           aria-label="New chat"
           title="New chat"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
         >
           <Plus className="h-4 w-4" />
         </button>
@@ -98,7 +101,7 @@ export function ChatView() {
         ref={scrollRef}
         onScroll={onScroll}
         className={cn(
-          "min-h-0",
+          "relative z-10 min-h-0",
           showWelcome ? "flex flex-1 flex-col items-center justify-end px-4 pb-4" : "flex-1 overflow-y-auto"
         )}
       >
@@ -109,15 +112,21 @@ export function ChatView() {
         ) : messages.length > 0 ? (
           <ChatMessages messages={messages} isStreaming={isStreaming} />
         ) : (
-          <h1 className="text-[26px] font-semibold tracking-tight text-foreground sm:text-[30px]">
-            What can I help with?
-          </h1>
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground shadow-sm backdrop-blur">
+              <HeadmasterMark className="h-5 w-5" />
+              Neural Core Online
+            </div>
+            <h1 className="text-[32px] font-semibold tracking-tight text-foreground sm:text-[42px]">
+              What can <span className="brand-gradient-text">Headmaster</span> help with?
+            </h1>
+          </div>
         )}
       </div>
 
       {/* Composer wrapper — the STABLE 2nd child. Its chrome (docked vs bare centered) is a
           className swap so the ChatComposer inside never changes tree position. */}
-      <div className={cn("relative", showWelcome ? "w-full px-6 md:px-10" : "bg-background px-6 py-3 md:px-10 sm:py-4")}>
+      <div className={cn("relative z-10", showWelcome ? "w-full px-6 md:px-10" : "bg-background/88 px-6 py-3 backdrop-blur md:px-10 sm:py-4")}>
         {/* No hard divider — a short fade dissolves the transcript into the composer instead. */}
         {!showWelcome && (
           <div className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-background to-transparent" />
@@ -139,7 +148,7 @@ export function ChatView() {
       {/* Bottom: balances the vertical centering and carries the welcome subtitle. */}
       {showWelcome && (
         <div className="flex flex-1 flex-col items-center px-4 pt-3">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-medium text-muted-foreground">
             The more context you give, the better your agent can help.
           </p>
         </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Files, MessageSquare, Plug, Settings } from 'lucide-react';
 import { AccountMenu } from '@/components/AccountMenu';
+import { HeadmasterLockup } from '@/components/HeadmasterBrand';
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatView } from '@/components/chat/ChatView';
@@ -68,14 +69,15 @@ export function AgentWorkspace({
       onChatTab={activeTab === 'chat'}
       navigateToSession={navigateToSession}
     >
-      <div className='flex h-[calc(100vh-3rem)] min-h-[640px] overflow-hidden rounded-lg border bg-background'>
-        <aside className='flex w-64 shrink-0 flex-col border-r bg-card'>
-          <div className='border-b p-4'>
-            <Link href='/dashboard' className='text-xs text-muted-foreground hover:text-foreground'>
+      <div className='brand-shell flex h-[calc(100vh-3rem)] min-h-[640px] overflow-hidden rounded-[24px] border border-border/80 bg-background'>
+        <aside className='brand-sidebar flex w-72 shrink-0 flex-col border-r border-border/70'>
+          <div className='border-b border-border/70 p-4'>
+            <HeadmasterLockup />
+            <Link href='/dashboard' className='mt-5 inline-flex text-xs font-medium text-muted-foreground transition-colors hover:text-primary'>
               Agents
             </Link>
             <div className='mt-2 min-w-0'>
-              <h1 className='truncate text-base font-semibold'>{currentAgent.name || 'Headmaster runtime'}</h1>
+              <h1 className='truncate text-base font-semibold tracking-tight'>{currentAgent.name || 'Headmaster runtime'}</h1>
               <div className='mt-2 flex items-center gap-2'>
                 <Badge variant={statusVariant(currentAgent.live_status)}>{currentAgent.live_status ?? 'unknown'}</Badge>
                 <span className='truncate font-mono text-xs text-muted-foreground'>{currentAgent.runtime_id}</span>
@@ -83,7 +85,7 @@ export function AgentWorkspace({
             </div>
           </div>
 
-          <nav className='border-b p-2'>
+          <nav className='border-b border-border/70 p-2'>
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
@@ -92,10 +94,10 @@ export function AgentWorkspace({
                   key={tab.id}
                   href={agentTabPath(currentAgent.runtime_id, tab.id)}
                   className={cn(
-                    'flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                    'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
                     active
-                      ? 'bg-secondary text-foreground'
-                      : 'text-muted-foreground hover:bg-secondary/70 hover:text-foreground'
+                      ? 'brand-gradient-surface shadow-[0_10px_24px_rgba(37,99,255,0.2)]'
+                      : 'text-muted-foreground hover:bg-card/80 hover:text-foreground hover:shadow-sm'
                   )}
                 >
                   <Icon className='h-4 w-4' />
@@ -119,7 +121,7 @@ export function AgentWorkspace({
           </div>
 
           {userEmail ? (
-            <div className='mt-auto border-t p-3'>
+            <div className='mt-auto border-t border-border/70 p-3'>
               <AccountMenu userEmail={userEmail} caption='' />
             </div>
           ) : null}

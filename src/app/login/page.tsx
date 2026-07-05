@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { HeadmasterLockup } from "@/components/HeadmasterBrand";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { branding } from "@/config/branding";
@@ -136,9 +137,10 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">{branding.appName}</h1>
+      <div className="w-full max-w-sm space-y-6 rounded-[28px] border border-border/70 bg-card/82 p-7 shadow-[0_24px_80px_rgba(13,15,20,0.08)] backdrop-blur">
+        <div className="flex flex-col items-center space-y-3 text-center">
+          <HeadmasterLockup />
+          <h1 className="sr-only">{branding.appName}</h1>
           <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
         </div>
 
